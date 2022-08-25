@@ -90,6 +90,13 @@ export class VideoOnDemand extends cdk.Stack {
       default: 'PREFERRED',
       allowedValues: ['ENABLED', 'DISABLED', 'PREFERRED']
     });
+    const preserveFilePathInOutput = new cdk.CfnParameter(this, 'PreserveFilePathInOutput', {
+      type: 'String',
+      description: 'Preserves the input file\'s path in the output folder. For example, input file in s3://inputBucket/path1/path2/file1.mp4 will generate output s3://outputBucket/path1/path2/file1/mp4/file1.mp4 and s3://outputBucket/path1/path2/file1/mp4/hls',
+      default: 'Yes',
+      allowedValues: ['Yes', 'No']
+    });
+
     /**
      * Template metadata
      */
@@ -103,7 +110,8 @@ export class VideoOnDemand extends cdk.Stack {
               workflowTrigger.logicalId,
               glacier.logicalId,
               enableSns.logicalId,
-              enableSqs.logicalId
+              enableSqs.logicalId,
+              preserveFilePathInOutput.logicalId
             ]
           },
           {
@@ -142,6 +150,9 @@ export class VideoOnDemand extends cdk.Stack {
           },
           EnableSqs: {
             default: 'Enable SQS Messaging'
+          },
+          PreserveFilePathInOutput: {
+            default: 'Preserve file path in output'
           }
         }
       }
@@ -170,6 +181,9 @@ export class VideoOnDemand extends cdk.Stack {
     });
     const conditionEnableSqs = new cdk.CfnCondition(this, 'EnableSqsCondition', {
       expression: cdk.Fn.conditionEquals(enableSqs.valueAsString, 'Yes')
+    });
+    const conditionPreserveFilePathInOutput = new cdk.CfnCondition(this, 'PreserveFilePathInOutputCondition', {
+      expression: cdk.Fn.conditionEquals(preserveFilePathInOutput.valueAsString, 'Yes')
     });
 
 
@@ -977,6 +991,7 @@ export class VideoOnDemand extends cdk.Stack {
         InputRotate: 'DEGREE_0',
         EnableSns: `${cdk.Fn.conditionIf(conditionEnableSns.logicalId, 'true', 'false')}`,
         EnableSqs: `${cdk.Fn.conditionIf(conditionEnableSqs.logicalId, 'true', 'false')}`,
+        PreserveFilePathInOutput: `${cdk.Fn.conditionIf(conditionPreserveFilePathInOutput.logicalId, 'true', 'false')}`,
         AcceleratedTranscoding: acceleratedTranscoding.valueAsString
       },
       role: inputValidateRole,
