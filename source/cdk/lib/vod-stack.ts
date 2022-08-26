@@ -96,6 +96,14 @@ export class VideoOnDemand extends cdk.Stack {
       default: 'Yes',
       allowedValues: ['Yes', 'No']
     });
+    const inputS3Bucket = new cdk.CfnParameter(this, 'InputS3Bucket', {
+      type: 'String',
+      description: 'Name of the video input S3 bucket'
+    });
+    const outputS3Bucket = new cdk.CfnParameter(this, 'OutputS3Bucket', {
+      type: 'String',
+      description: 'Name of the video output S3 bucket'
+    });
 
     /**
      * Template metadata
@@ -111,7 +119,9 @@ export class VideoOnDemand extends cdk.Stack {
               glacier.logicalId,
               enableSns.logicalId,
               enableSqs.logicalId,
-              preserveFilePathInOutput.logicalId
+              preserveFilePathInOutput.logicalId,
+              inputS3Bucket.logicalId,
+              outputS3Bucket.logicalId
             ]
           },
           {
@@ -153,6 +163,12 @@ export class VideoOnDemand extends cdk.Stack {
           },
           PreserveFilePathInOutput: {
             default: 'Preserve file path in output'
+          },
+          InputS3Bucket: {
+            default: 'Input S3 bucket name'
+          },
+          OutputS3Bucket: {
+            default: 'Output S3 bucket name'
           }
         }
       }
