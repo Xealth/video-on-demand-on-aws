@@ -63,7 +63,7 @@ export class VideoOnDemand extends cdk.Stack {
     const frameCapture = new cdk.CfnParameter(this, 'FrameCapture', {
       type: 'String',
       description: 'If enabled, frame capture is added to the job submitted to MediaConvert',
-      default: 'No',
+      default: 'Yes',
       allowedValues: ['Yes', 'No']
     });
     const enableMediaPackage = new cdk.CfnParameter(this, 'EnableMediaPackage', {
