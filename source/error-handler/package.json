@@ -2,7 +2,7 @@
   "name": "vod-error-handler",
   "version": "1.0.0",
   "engines": {
-    "node": ">=12"
+    "node": ">=14"
   },
   "description": "error handler for video on demand",
   "main": "index.js",
