@@ -2,7 +2,7 @@
   "name": "vod-output-validation",
   "version": "1.0.0",
   "engines": {
-    "node": ">=12"
+    "node": ">=14"
   },
   "description": "ingest workflow for video on demand",
   "main": "index.js",
