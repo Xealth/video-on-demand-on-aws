@@ -81,6 +81,14 @@ Parameters:
     Description: Name of the video output S3 bucket
     Type: String
 
+  CustomCloudFrontDns:
+    Description: DNS assigned to the Cloudfront serving the transcoded content
+    Type: String
+
+  AcmCertificateArn:
+    Description: AWS ACM certificate ARN for the customer DNS
+    Type: String
+
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
@@ -96,6 +104,8 @@ Metadata:
           - PreserveFilePathInOutput
           - InputS3Bucket
           - OutputS3Bucket
+          - CustomCloudFrontDns
+          - AcmCertificateArn
       -
         Label:
           default: "AWS Elemental MediaConvert"
@@ -130,6 +140,10 @@ Metadata:
         default: Name of the video input S3 bucket
       OutputS3Bucket:
         default: Name of the video output S3 bucket
+      CustomCloudFrontDns:
+        default: DNS assigned to the Cloudfront serving the transcoded content
+      AcmCertificateArn:
+        default: AWS ACM certificate ARN for the customer DNS
 
 Mappings:
   SourceCode:
@@ -549,6 +563,9 @@ Resources:
     Type: AWS::CloudFront::Distribution
     Properties:
       DistributionConfig:
+        Comment: Cloudfront distribution to serve transcoded videos from AWS Video On Demand Solution
+        Aliases:
+          - !Ref CustomCloudFrontDns
         Origins:
           - DomainName: !Sub "${Destination}.s3.${AWS::Region}.amazonaws.com"
             Id: vodS3Origin
@@ -579,7 +596,10 @@ Resources:
               - Access-Control-Request-Headers
         PriceClass: PriceClass_100
         ViewerCertificate:
-          CloudFrontDefaultCertificate: true
+          AcmCertificateArn: !Ref AcmCertificateArn
+          MinimumProtocolVersion: TLSv1.2_2018
+          SslSupportMethod: sni-only
+
     Metadata:
       cfn_nag:
         rules_to_suppress:
@@ -793,6 +813,7 @@ Resources:
               - !Sub "${AWS::StackName}_Ott_720p_Avc_Aac_16x9_mvod_no_preset"
               - !Sub "${AWS::StackName}_Ott_720p_Avc_Aac_16x9_qvbr_no_preset"
           CloudFront: !GetAtt CloudFront.DomainName
+          CustomCloudFrontDns: !Ref CustomCloudFrontDns
           EnableMediaPackage: !Ref EnableMediaPackage
           InputRotate: DEGREE_0
           EnableSns: !Ref EnableSns
