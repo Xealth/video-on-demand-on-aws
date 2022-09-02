@@ -50,16 +50,19 @@ exports.handler = async (event) => {
   event.detail.outputGroupDetails.forEach(output => {
     console.log(`${output.type} found in outputs`);
 
+    // use the given custom DNS configured for cloudfront
+    const outputUrlHost = data.cloudFrontCustomDns || data.cloudFront
+
     switch (output.type) {
     case 'HLS_GROUP':
       data.hlsPlaylist = output.playlistFilePaths[0];
-      data.hlsUrl = `https://${data.cloudFront}/${buildUrl(data.hlsPlaylist)}`;
+      data.hlsUrl = `https://${outputUrlHost}/${buildUrl(data.hlsPlaylist)}`;
 
       break;
 
     case 'DASH_ISO_GROUP':
       data.dashPlaylist = output.playlistFilePaths[0];
-      data.dashUrl = `https://${data.cloudFront}/${buildUrl(data.dashPlaylist)}`;
+      data.dashUrl = `https://${outputUrlHost}/${buildUrl(data.dashPlaylist)}`;
 
       break;
 
@@ -70,7 +73,7 @@ exports.handler = async (event) => {
 
         if (file.outputFilePaths) {
           files.push(file.outputFilePaths[0]);
-          urls.push(`https://${data.cloudFront}/${buildUrl(file.outputFilePaths[0])}`);
+          urls.push(`https://${outputUrlHost}/${buildUrl(file.outputFilePaths[0])}`);
         }
       });
 
@@ -83,16 +86,16 @@ exports.handler = async (event) => {
 
     case 'MS_SMOOTH_GROUP':
       data.mssPlaylist = output.playlistFilePaths[0];
-      data.mssUrl = `https://${data.cloudFront}/${buildUrl(data.mssPlaylist)}`;
+      data.mssUrl = `https://${outputUrlHost}/${buildUrl(data.mssPlaylist)}`;
 
       break;
 
     case 'CMAF_GROUP':
       data.cmafDashPlaylist = output.playlistFilePaths[0];
-      data.cmafDashUrl = `https://${data.cloudFront}/${buildUrl(data.cmafDashPlaylist)}`;
+      data.cmafDashUrl = `https://${outputUrlHost}/${buildUrl(data.cmafDashPlaylist)}`;
 
       data.cmafHlsPlaylist = output.playlistFilePaths[1];
-      data.cmafHlsUrl = `https://${data.cloudFront}/${buildUrl(data.cmafHlsPlaylist)}`;
+      data.cmafHlsUrl = `https://${outputUrlHost}/${buildUrl(data.cmafHlsPlaylist)}`;
 
       break;
 
@@ -122,7 +125,7 @@ exports.handler = async (event) => {
     if (thumbNails.Contents.length !=0) {
       let lastImg = thumbNails.Contents.pop();
       data.thumbNails.push(`s3://${data.destBucket}/${lastImg.Key}`);
-      data.thumbNailsUrls.push(`https://${data.cloudFront}/${lastImg.Key}`);
+      data.thumbNailsUrls.push(`https://${outputUrlHost}/${lastImg.Key}`);
     } else {
         throw new Error('MediaConvert Thumbnails not found in S3');
     }

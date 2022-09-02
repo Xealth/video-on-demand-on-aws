@@ -104,6 +104,14 @@ export class VideoOnDemand extends cdk.Stack {
       type: 'String',
       description: 'Name of the video output S3 bucket'
     });
+    const cloudFrontCustomDns = new cdk.CfnParameter(this, 'CloudFrontCustomDns', {
+      type: 'String',
+      description: 'DNS assigned to the Cloudfront serving the transcoded content'
+    });
+    const acmCertificateArn = new cdk.CfnParameter(this, 'AcmCertificateArn', {
+      type: 'String',
+      description: 'AWS ACM certificate ARN for the customer DNS'
+    });
 
     /**
      * Template metadata
@@ -169,6 +177,12 @@ export class VideoOnDemand extends cdk.Stack {
           },
           OutputS3Bucket: {
             default: 'Output S3 bucket name'
+          },
+          CloudFrontCustomDns: {
+            default: 'CloudFront custom DNS (optional)'
+          },
+          AcmCertificateArn: {
+            default: 'ACM Certificate ARN for custom DNS (optional, required if CloudFront custom DNS is provided)'
           }
         }
       }
@@ -200,6 +214,11 @@ export class VideoOnDemand extends cdk.Stack {
     });
     const conditionPreserveFilePathInOutput = new cdk.CfnCondition(this, 'PreserveFilePathInOutputCondition', {
       expression: cdk.Fn.conditionEquals(preserveFilePathInOutput.valueAsString, 'Yes')
+    });
+    const conditionCustomDns = new cdk.CfnCondition(this, 'CustomDnsCondition', {
+      expression: cdk.Fn.conditionNot(
+        cdk.Fn.conditionEquals(cloudFrontCustomDns.valueAsString, '')
+      )
     });
 
 
@@ -267,6 +286,14 @@ export class VideoOnDemand extends cdk.Stack {
         restrictPublicBuckets: true
       }),
       encryption: s3.BucketEncryption.S3_MANAGED,
+      cors: [
+        {
+          allowedMethods: [s3.HttpMethods.GET],
+          allowedOrigins: ['*'],
+          allowedHeaders: ['*'],
+          maxAge: 3000
+        }
+      ],
       lifecycleRules: [
         {
           id: `${cdk.Aws.STACK_NAME}-soure-archive`,
@@ -393,6 +420,28 @@ export class VideoOnDemand extends cdk.Stack {
       insertHttpSecurityHeaders: false,
       logS3AccessLogs: false
     });
+
+    const cfnDistribution = distribution.cloudFrontWebDistribution.node.findChild('Resource') as cloudfront.CfnDistribution;
+    cfnDistribution.addPropertyOverride(
+      'DistributionConfig.Aliases',
+      cdk.Fn.conditionIf(
+        conditionCustomDns.logicalId,
+        [cloudFrontCustomDns.valueAsString],
+        cdk.Aws.NO_VALUE
+      )
+    );
+    cfnDistribution.addPropertyOverride(
+      'DistributionConfig.ViewerCertificate',
+      cdk.Fn.conditionIf(
+        conditionCustomDns.logicalId,
+        {
+          AcmCertificateArn: acmCertificateArn.valueAsString,
+          SslSupportMethod: 'sni-only',
+          MinimumProtocolVersion: 'TLSv1.2_2021',
+        },
+        cdk.Aws.NO_VALUE
+      )
+    );
 
     //cdk_nag
     NagSuppressions.addResourceSuppressions(
