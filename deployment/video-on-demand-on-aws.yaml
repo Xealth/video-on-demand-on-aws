@@ -444,6 +444,12 @@ Resources:
       LoggingConfiguration:
         DestinationBucketName: !Ref Logs
         LogFilePrefix: s3-access/
+      CorsConfiguration:
+        CorsRules:
+          - AllowedMethods: [GET]
+            AllowedOrigins: ['*']
+            AllowedHeaders: ['*']
+            MaxAge: 3000
       LifecycleConfiguration:
         Rules:
           - Id: !Sub "${AWS::StackName}-source-archive"
