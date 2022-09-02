@@ -33,6 +33,7 @@ exports.handler = async (event) => {
             srcBucket: process.env.Source,
             destBucket: process.env.Destination,
             cloudFront: process.env.CloudFront,
+            cloudFrontCustomDns: process.env.CustomCloudFrontDns,
             frameCapture: JSON.parse(process.env.FrameCapture),
             archiveSource:  process.env.ArchiveSource,
             jobTemplate_2160p: process.env.MediaConvert_Template_2160p,
