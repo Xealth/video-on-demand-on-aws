@@ -684,6 +684,10 @@ export class VideoOnDemand extends cdk.Stack {
           ]
         }),
         new iam.PolicyStatement({
+          resources: ['*'],
+          actions: ['iam:ListAttachedRolePolicies']
+        })
+        new iam.PolicyStatement({
           resources: [`arn:${cdk.Aws.PARTITION}:execute-api:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:*`],
           actions: ['execute-api:Invoke']
         })
