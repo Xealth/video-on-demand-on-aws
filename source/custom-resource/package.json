@@ -1,6 +1,6 @@
 {
   "name": "vod-custom-resource",
-  "version": "6.1.13",
+  "version": "6.1.14",
   "engines": {
     "node": ">=22"
   },
@@ -11,7 +11,7 @@
     "test": "jest --coverage"
   },
   "dependencies": {
-    "axios": "^1.8.2",
+    "axios": "^1.12.0",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
