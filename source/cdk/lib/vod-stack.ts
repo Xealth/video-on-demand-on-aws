@@ -36,7 +36,7 @@ export class VideoOnDemand extends cdk.Stack {
     /**
      * CloudFormation Template Descrption
      */
-    const solutionId = 'SO0021'
+    const solutionId = 'SO9674'
     const solutionName = 'Video on Demand on AWS'
     this.templateOptions.description = `(${solutionId}) - ${solutionName} workflow with AWS Step Functions, MediaConvert, MediaPackage, S3, CloudFront and DynamoDB. Version %%VERSION%%`;
     /**
