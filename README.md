@@ -1,8 +1,10 @@
-# Video on Demand on AWS
+# Guidance for Video on Demand on AWS
 
 How to implement a video-on-demand workflow on AWS leveraging AWS Step Functions,
 AWS Elemental MediaConvert, and AWS Elemental MediaPackage.
-Source code for [Video on Demand on AWS][vod-landing] solution.
+Source code for [Video on Demand on AWS][vod-landing] guidance.
+
+*Customers are responsible for making their own independent assessment of the information in this Guidance. This Guidance: (a) is for informational purposes only, (b) represents AWS current product offerings and practices, which are subject to change without notice, and (c) does not create any commitments or assurances from AWS and its affiliates, suppliers or licensors. AWS products or services are provided "as is" without warranties, representations, or conditions of any kind, whether express or implied. AWS responsibilities and liabilities to its customers are controlled by AWS agreements, and this Guidance is not part of, nor does it modify, any agreement between AWS and its customers.*
 
 ## On this Page
 - [Video on Demand on AWS](#video-on-demand-on-aws)
@@ -35,8 +37,8 @@ Source code for [Video on Demand on AWS][vod-landing] solution.
 ![Architecture](architecture.png)
 
 ## Deployment
-The solution is deployed using a CloudFormation template with a lambda backed custom resource.
-For details on deploying the solution please see the details on the solution home page:
+The guidance is deployed using a CloudFormation template with a lambda backed custom resource.
+For details on deploying the guidance please see the details on the guidance home page:
 [Video on Demand on AWS][vod-landing]
 
 > **Please ensure you test the new template before updating any production deployments.**
@@ -116,11 +118,11 @@ in the metadata file.
 }
 ```
 
-The solution also supports adding additional metadata, such as title, genre, or any other
+The guidance also supports adding additional metadata, such as title, genre, or any other
 information, you want to store in Amazon DynamoDB.
 
 ## Encoding Templates
-At launch the Solution creates 3 MediaConvert job templates which are used as the default encoding
+At launch the guidance creates 3 MediaConvert job templates which are used as the default encoding
 templates for the workflow:
 - **MediaConvert_Template_2160p**
 - **MediaConvert_Template_1080p**
@@ -130,7 +132,7 @@ By default, the profiler step in the process step function will check the source
 set the parameter "jobTemplate" to one of the
 available templates. This variable is then passed to the encoding step which submits a job to
 AWS Elemental MediaConvert.
-To customize the encoding templates used by the solution you can either
+To customize the encoding templates used by the guidance you can either
 replace the existing templates or you can use the source metadata version of
 the workflow and define the jobTemplate as part of the source metadata file.
 
@@ -141,7 +143,7 @@ the workflow and define the jobTemplate as part of the source metadata file.
 with the names of the new templates.
 
 **To define the job template using metadata:**
-1.	Launch the solution with source metadata parameter. See Appendix E for more details.
+1.	Launch the guidance with source metadata parameter. See Appendix E for more details.
 2.	Use the system templates or create a new template through the MediaConvert console
 (see the AWS Elemental MediaConvert documentation for details).
 3.	Add "jobTemplate":"name of the template" to the metadata file,
@@ -150,7 +152,7 @@ this will overwrite the profiler step in the process Step Functions.
 ## QVBR Mode
 AWS MediaConvert Quality-defined Variable Bit-Rate (QVBR) control mode
 gets the best video quality for a given file size and is recommended for OTT
-and Video On Demand Content. The solution supports this feature and it will create
+and Video On Demand Content. The guidance supports this feature and it will create
 HLS, MP4 and DASH custom presets with the following QVBR levels
 and Single Pass HQ encoding:
 
@@ -204,9 +206,9 @@ For more detail please see [Accelerated Transcoding][accelerated-transcoding].
 > ./source/mediainfo/bin/mediainfo must be made executable before deploying to lambda.
 
 ## Creating a custom build
-The solution can be deployed through the CloudFormation template available on the solution home page: 
+The guidance can be deployed through the CloudFormation template available on the guidance home page: 
 [Video on Demand on AWS][vod-ig].
-To make changes to the solution, download or clone this repo,
+To make changes to the guidance, download or clone this repo,
 update the source code and then run the deployment/build-s3-dist.sh script to deploy
 the updated Lambda code to an Amazon S3 bucket in your account.
 
@@ -309,8 +311,8 @@ aws s3 sync ./global-s3-assets/ s3://my-bucket-us-east-1/video-on-demand-on-aws/
 
 ## Collection of operational metrics
 
-This solution collects anonymized operational metrics to help AWS improve
-the quality of features of the solution.
+This guidance collects anonymized operational metrics to help AWS improve
+the quality of features of the guidance.
 For more information, including how to disable this capability,
 please see the
 [implementation guide](https://docs.aws.amazon.com/solutions/latest/video-on-demand-on-aws/reference.html).
