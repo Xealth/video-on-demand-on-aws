@@ -36,7 +36,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
       ],
     },
   },
-  Description: (SO0021) - Video on Demand on AWS workflow with AWS Step Functions, MediaConvert, MediaPackage, S3, CloudFront and DynamoDB. Version %%VERSION%%,
+  Description: (SO9674) - Video on Demand on AWS workflow with AWS Step Functions, MediaConvert, MediaPackage, S3, CloudFront and DynamoDB. Version %%VERSION%%,
   Mappings: {
     AnonymizedData: {
       SendAnonymizedData: {
@@ -370,7 +370,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
             Arn,
           ],
         },
-        SolutionId: SO0021,
+        SolutionId: SO9674,
         Transcoder: MediaConvert,
         UUID: {
           Fn::GetAtt: [
@@ -434,7 +434,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
                 Arn,
               ],
             },
-            SOLUTION_IDENTIFIER: AwsSolution/SO0021/%%VERSION%%,
+            SOLUTION_IDENTIFIER: AwsSolution/SO9674/%%VERSION%%,
           },
         },
         FunctionName: {
@@ -459,7 +459,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
         Timeout: 120,
@@ -585,7 +585,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
       },
@@ -717,7 +717,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
       },
@@ -796,7 +796,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Description: Used to deploy resources not supported by CloudFormation,
         Environment: {
           Variables: {
-            SOLUTION_IDENTIFIER: AwsSolution/SO0021/%%VERSION%%,
+            SOLUTION_IDENTIFIER: AwsSolution/SO9674/%%VERSION%%,
           },
         },
         FunctionName: {
@@ -821,7 +821,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
         Timeout: 30,
@@ -1091,7 +1091,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
       },
@@ -1150,7 +1150,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
         VersioningConfiguration: {
@@ -1334,7 +1334,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
       },
@@ -1392,7 +1392,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
                 Arn,
               ],
             },
-            SOLUTION_IDENTIFIER: AwsSolution/SO0021/%%VERSION%%,
+            SOLUTION_IDENTIFIER: AwsSolution/SO9674/%%VERSION%%,
           },
         },
         FunctionName: {
@@ -1417,7 +1417,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
         Timeout: 120,
@@ -1535,7 +1535,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
       },
@@ -1731,7 +1731,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
                 Arn,
               ],
             },
-            SOLUTION_IDENTIFIER: AwsSolution/SO0021/%%VERSION%%,
+            SOLUTION_IDENTIFIER: AwsSolution/SO9674/%%VERSION%%,
           },
         },
         FunctionName: {
@@ -1756,7 +1756,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
         Timeout: 120,
@@ -1903,7 +1903,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
       },
@@ -1977,7 +1977,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
             DynamoDBTable: {
               Ref: DynamoDBTable59784FC0,
             },
-            SOLUTION_IDENTIFIER: AwsSolution/SO0021/%%VERSION%%,
+            SOLUTION_IDENTIFIER: AwsSolution/SO9674/%%VERSION%%,
             SnsTopic: {
               Ref: SnsTopic2C1570A4,
             },
@@ -2005,7 +2005,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
         Timeout: 120,
@@ -2125,7 +2125,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
       },
@@ -2215,7 +2215,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
       },
@@ -2395,7 +2395,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
                 },
               ],
             },
-            SOLUTION_IDENTIFIER: AwsSolution/SO0021/%%VERSION%%,
+            SOLUTION_IDENTIFIER: AwsSolution/SO9674/%%VERSION%%,
             Source: {
               Ref: Source71E471F1,
             },
@@ -2426,7 +2426,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
         Timeout: 120,
@@ -2552,7 +2552,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
       },
@@ -2613,7 +2613,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
         VersioningConfiguration: {
@@ -2808,7 +2808,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
       },
@@ -2892,7 +2892,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
                 Arn,
               ],
             },
-            SOLUTION_IDENTIFIER: AwsSolution/SO0021/%%VERSION%%,
+            SOLUTION_IDENTIFIER: AwsSolution/SO9674/%%VERSION%%,
           },
         },
         FunctionName: {
@@ -2917,7 +2917,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
         Timeout: 120,
@@ -3043,7 +3043,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
       },
@@ -3115,7 +3115,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
                 Arn,
               ],
             },
-            SOLUTION_IDENTIFIER: AwsSolution/SO0021/%%VERSION%%,
+            SOLUTION_IDENTIFIER: AwsSolution/SO9674/%%VERSION%%,
           },
         },
         FunctionName: {
@@ -3140,7 +3140,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
         Timeout: 120,
@@ -3275,7 +3275,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
       },
@@ -3413,7 +3413,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
       },
@@ -3476,7 +3476,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
                 Arn,
               ],
             },
-            SOLUTION_IDENTIFIER: AwsSolution/SO0021/%%VERSION%%,
+            SOLUTION_IDENTIFIER: AwsSolution/SO9674/%%VERSION%%,
           },
         },
         FunctionName: {
@@ -3501,7 +3501,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
         Timeout: 120,
@@ -3629,7 +3629,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
       },
@@ -3705,7 +3705,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
       },
@@ -3763,7 +3763,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
                 Arn,
               ],
             },
-            SOLUTION_IDENTIFIER: AwsSolution/SO0021/%%VERSION%%,
+            SOLUTION_IDENTIFIER: AwsSolution/SO9674/%%VERSION%%,
           },
         },
         FunctionName: {
@@ -3788,7 +3788,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
         Timeout: 120,
@@ -3906,7 +3906,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
       },
@@ -4010,7 +4010,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
       },
@@ -4096,7 +4096,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
                 Arn,
               ],
             },
-            SOLUTION_IDENTIFIER: AwsSolution/SO0021/%%VERSION%%,
+            SOLUTION_IDENTIFIER: AwsSolution/SO9674/%%VERSION%%,
             SnsTopic: {
               Ref: SnsTopic2C1570A4,
             },
@@ -4124,7 +4124,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
         Timeout: 120,
@@ -4244,7 +4244,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
       },
@@ -4267,7 +4267,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
       },
@@ -4390,7 +4390,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
         VersioningConfiguration: {
@@ -4467,7 +4467,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
         VisibilityTimeout: 120,
@@ -4504,7 +4504,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
         VisibilityTimeout: 120,
@@ -4626,7 +4626,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
                 Arn,
               ],
             },
-            SOLUTION_IDENTIFIER: AwsSolution/SO0021/%%VERSION%%,
+            SOLUTION_IDENTIFIER: AwsSolution/SO9674/%%VERSION%%,
             SqsQueue: {
               Ref: SqsQueue13597403,
             },
@@ -4654,7 +4654,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
         Timeout: 120,
@@ -4777,7 +4777,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
       },
@@ -4903,7 +4903,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
                 ],
               ],
             },
-            SOLUTION_IDENTIFIER: AwsSolution/SO0021/%%VERSION%%,
+            SOLUTION_IDENTIFIER: AwsSolution/SO9674/%%VERSION%%,
           },
         },
         FunctionName: {
@@ -4928,7 +4928,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
         Timeout: 120,
@@ -5157,7 +5157,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
       },
@@ -5261,7 +5261,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Tags: [
           {
             Key: SolutionId,
-            Value: SO0021,
+            Value: SO9674,
           },
         ],
       },

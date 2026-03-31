@@ -32,3 +32,6 @@ codescan-unified-default.sh
 **/source/test
 **source/**/.coverage
 **source/**/coverage
+
+# Kiro IDE
+.kiro/
