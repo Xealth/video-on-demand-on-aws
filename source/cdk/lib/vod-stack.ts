@@ -277,6 +277,7 @@ export class VideoOnDemand extends cdk.Stack {
      * Source bucket for source video and jobsettings JSON files
      */
     const source = new s3.Bucket(this, 'Source', {
+      bucketName: inputS3Bucket.valueAsString,
       serverAccessLogsBucket: logsBucket,
       serverAccessLogsPrefix: 'source-bucket-logs/',
       blockPublicAccess: new s3.BlockPublicAccess({
@@ -352,6 +353,7 @@ export class VideoOnDemand extends cdk.Stack {
      * Destination bucket for workflow outputs
      */
     const destination = new s3.Bucket(this, 'Destination', {
+      bucketName: outputS3Bucket.valueAsString,
       serverAccessLogsBucket: logsBucket,
       serverAccessLogsPrefix: 'destination-bucket-logs/',
       blockPublicAccess: new s3.BlockPublicAccess({

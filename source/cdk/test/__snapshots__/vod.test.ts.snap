@@ -1210,6 +1210,9 @@ exports[`VideoOnDemand Stack Test 1`] = `
             },
           ],
         },
+        BucketName: {
+          Ref: OutputS3Bucket,
+        },
         CorsConfiguration: {
           CorsRules: [
             {
@@ -4417,6 +4420,9 @@ exports[`VideoOnDemand Stack Test 1`] = `
               },
             },
           ],
+        },
+        BucketName: {
+          Ref: InputS3Bucket,
         },
         CorsConfiguration: {
           CorsRules: [
