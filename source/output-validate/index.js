@@ -46,12 +46,12 @@ exports.handler = async (event) => {
   data.workflowStatus = 'Complete';
   data.endTime = new Date().toISOString();
 
+  // use the given custom DNS configured for cloudfront
+  const outputUrlHost = data.cloudFrontCustomDns || data.cloudFront
+
   // Parse MediaConvert Output and generate CloudFront URLS.
   event.detail.outputGroupDetails.forEach(output => {
     console.log(`${output.type} found in outputs`);
-
-    // use the given custom DNS configured for cloudfront
-    const outputUrlHost = data.cloudFrontCustomDns || data.cloudFront
 
     switch (output.type) {
     case 'HLS_GROUP':

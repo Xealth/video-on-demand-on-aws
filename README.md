@@ -214,6 +214,15 @@ the updated Lambda code to an Amazon S3 bucket in your account.
 * Node.js 22.x or later
 * Python 3.13 or later
 
+### 0. Install python virtual env for mediaInfo
+
+```
+cd source/mediainfo
+uv venv
+source .venv/bin/activate
+```
+
+
 ### 1. Running unit tests for customization
 Run unit tests to make sure added customization passes the tests:
 ```

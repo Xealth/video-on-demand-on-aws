@@ -3,6 +3,18 @@
 exports[`VideoOnDemand Stack Test 1`] = `
 {
   Conditions: {
+    CustomDnsCondition: {
+      Fn::Not: [
+        {
+          Fn::Equals: [
+            {
+              Ref: CloudFrontCustomDns,
+            },
+            ,
+          ],
+        },
+      ],
+    },
     EnableMediaPackageCondition: {
       Fn::Equals: [
         {
@@ -35,6 +47,14 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Yes,
       ],
     },
+    PreserveFilePathInOutputCondition: {
+      Fn::Equals: [
+        {
+          Ref: PreserveFilePathInOutput,
+        },
+        Yes,
+      ],
+    },
   },
   Description: (SO9674) - Video on Demand on AWS workflow with AWS Step Functions, MediaConvert, MediaPackage, S3, CloudFront and DynamoDB. Version %%VERSION%%,
   Mappings: {
@@ -57,6 +77,9 @@ exports[`VideoOnDemand Stack Test 1`] = `
             Glacier,
             EnableSns,
             EnableSqs,
+            PreserveFilePathInOutput,
+            InputS3Bucket,
+            OutputS3Bucket,
           ],
         },
         {
@@ -81,8 +104,14 @@ exports[`VideoOnDemand Stack Test 1`] = `
         AcceleratedTranscoding: {
           default: Accelerated Transcoding,
         },
+        AcmCertificateArn: {
+          default: ACM Certificate ARN for custom DNS (optional, required if CloudFront custom DNS is provided),
+        },
         AdminEmail: {
           default: Notification email address,
+        },
+        CloudFrontCustomDns: {
+          default: CloudFront custom DNS (optional),
         },
         EnableMediaPackage: {
           default: Enable MediaPackage,
@@ -98,6 +127,15 @@ exports[`VideoOnDemand Stack Test 1`] = `
         },
         Glacier: {
           default: Archive source content,
+        },
+        InputS3Bucket: {
+          default: Input S3 bucket name,
+        },
+        OutputS3Bucket: {
+          default: Output S3 bucket name,
+        },
+        PreserveFilePathInOutput: {
+          default: Preserve file path in output,
         },
         WorkflowTrigger: {
           default: Workflow trigger,
@@ -282,9 +320,17 @@ exports[`VideoOnDemand Stack Test 1`] = `
       Description: Enable accelerated transcoding in AWS Elemental MediaConvert. PREFERRED will only use acceleration if the input files is supported. ENABLED accleration is applied to all files (this will fail for unsupported file types) see MediaConvert Documentation for more detail https://docs.aws.amazon.com/mediaconvert/latest/ug/accelerated-transcoding.html,
       Type: String,
     },
+    AcmCertificateArn: {
+      Description: AWS ACM certificate ARN for the customer DNS,
+      Type: String,
+    },
     AdminEmail: {
       AllowedPattern: ^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$,
       Description: Email address for SNS notifications (subscribed users will receive ingest, publishing, and error notifications),
+      Type: String,
+    },
+    CloudFrontCustomDns: {
+      Description: DNS assigned to the Cloudfront serving the transcoded content,
       Type: String,
     },
     EnableMediaPackage: {
@@ -319,7 +365,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         Yes,
         No,
       ],
-      Default: No,
+      Default: Yes,
       Description: If enabled, frame capture is added to the job submitted to MediaConvert,
       Type: String,
     },
@@ -331,6 +377,23 @@ exports[`VideoOnDemand Stack Test 1`] = `
       ],
       Default: DISABLED,
       Description: If enabled, source assets will be tagged for archiving to Glacier or Glacier Deep Archive once the workflow is complete,
+      Type: String,
+    },
+    InputS3Bucket: {
+      Description: Name of the video input S3 bucket,
+      Type: String,
+    },
+    OutputS3Bucket: {
+      Description: Name of the video output S3 bucket,
+      Type: String,
+    },
+    PreserveFilePathInOutput: {
+      AllowedValues: [
+        Yes,
+        No,
+      ],
+      Default: Yes,
+      Description: Preserves the input file's path in the output folder. For example, input file in s3://inputBucket/path1/path2/file1.mp4 will generate output s3://outputBucket/path1/path2/file1/mp4/file1.mp4 and s3://outputBucket/path1/path2/file1/mp4/hls,
       Type: String,
     },
     WorkflowTrigger: {
@@ -667,6 +730,19 @@ exports[`VideoOnDemand Stack Test 1`] = `
       },
       Properties: {
         DistributionConfig: {
+          Aliases: {
+            Fn::If: [
+              CustomDnsCondition,
+              [
+                {
+                  Ref: CloudFrontCustomDns,
+                },
+              ],
+              {
+                Ref: AWS::NoValue,
+              },
+            ],
+          },
           DefaultCacheBehavior: {
             AllowedMethods: [
               GET,
@@ -713,6 +789,21 @@ exports[`VideoOnDemand Stack Test 1`] = `
             },
           ],
           PriceClass: PriceClass_100,
+          ViewerCertificate: {
+            Fn::If: [
+              CustomDnsCondition,
+              {
+                AcmCertificateArn: {
+                  Ref: AcmCertificateArn,
+                },
+                MinimumProtocolVersion: TLSv1.2_2021,
+                SslSupportMethod: sni-only,
+              },
+              {
+                Ref: AWS::NoValue,
+              },
+            ],
+          },
         },
         Tags: [
           {
@@ -2395,6 +2486,13 @@ exports[`VideoOnDemand Stack Test 1`] = `
                 },
               ],
             },
+            PreserveFilePathInOutput: {
+              Fn::If: [
+                PreserveFilePathInOutputCondition,
+                true,
+                false,
+              ],
+            },
             SOLUTION_IDENTIFIER: AwsSolution/SO9674/%%VERSION%%,
             Source: {
               Ref: Source71E471F1,
@@ -2734,6 +2832,11 @@ exports[`VideoOnDemand Stack Test 1`] = `
                   ],
                 },
               ],
+            },
+            {
+              Action: iam:ListAttachedRolePolicies,
+              Effect: Allow,
+              Resource: *,
             },
             {
               Action: execute-api:Invoke,
@@ -4312,6 +4415,22 @@ exports[`VideoOnDemand Stack Test 1`] = `
               ServerSideEncryptionByDefault: {
                 SSEAlgorithm: AES256,
               },
+            },
+          ],
+        },
+        CorsConfiguration: {
+          CorsRules: [
+            {
+              AllowedHeaders: [
+                *,
+              ],
+              AllowedMethods: [
+                GET,
+              ],
+              AllowedOrigins: [
+                *,
+              ],
+              MaxAge: 3000,
             },
           ],
         },
