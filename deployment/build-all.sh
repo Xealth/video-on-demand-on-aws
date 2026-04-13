@@ -3,10 +3,10 @@ ENV=$1
 VERSION=5.3.1
 if [ $ENV == "staging" ]
 then
-  AccountId=870539749295
+  AccountId=${XEALTH_STAGING_ACCOUNT_ID}
 elif [ $ENV == "production" ]
 then
-  AccountId=240871576430
+  AccountId=${XEALTH_PRODUCTION_ACCOUNT_ID}
 else
   echo "$0 staging | production"
   exit -1
