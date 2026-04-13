@@ -21,7 +21,7 @@ const buildUrl = (originalValue) => originalValue.slice(5).split('/').splice(1).
 exports.handler = async (event) => {
   console.log(`REQUEST:: ${JSON.stringify(event, null, 2)}`);
 
-  const dynamo = DynamoDBDocument.from(new DynamoDBClient({ 
+  const dynamo = DynamoDBDocument.from(new DynamoDBClient({
     region: process.env.AWS_REGION,
     customUserAgent: process.env.SOLUTION_IDENTIFIER
   }));
@@ -67,13 +67,13 @@ exports.handler = async (event) => {
       let files = [];
       let urls = [];
       output.outputDetails.forEach((file) => {
-        
+
         if (file.outputFilePaths) {
           files.push(file.outputFilePaths[0]);
           urls.push(`https://${data.cloudFront}/${buildUrl(file.outputFilePaths[0])}`);
         }
       });
-      
+
       if (files.length >0  && files[0].split('.').pop() === 'mp4') {
       data.mp4Outputs = files;
       data.mp4Urls = urls;
@@ -110,9 +110,11 @@ exports.handler = async (event) => {
     data.thumbNails = [];
     data.thumbNailsUrls = [];
 
+    const subFolder = data.preserveFilePathInOutput ? data.destPathPreserved : data.guid;
+
     params = {
       Bucket: data.destBucket,
-      Prefix: `${data.guid}/thumbnails/`,
+      Prefix: `${subFolder}/thumbnails/`,
     };
 
     let thumbNails = await s3.listObjects(params);
@@ -124,7 +126,7 @@ exports.handler = async (event) => {
     } else {
         throw new Error('MediaConvert Thumbnails not found in S3');
     }
-    
+
   }
 
   } catch (err) {
