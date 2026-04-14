@@ -63,7 +63,11 @@ input-validate lambda function (which is the first step in the ingest process).
 * **acceleratedTranscoding** Enabled Accelerated Transocding in MediaConvert. options include ENABLE, DISABLE, PREFERRED. for more detials please see:
 * **enableSns** Send SNS notifications for the workflow results.
 * **enableSqs** Send the workflow results to an SQS queue
-* ***PreserveFilePathInOutput*** preserves the input file's path in the output folder
+* **PreserveFilePathInOutput** preserves the input file's path in the output folder
+* **InputS3Bucket** Name of the video input S3 bucket
+* **OutputS3Bucket** Name of the video output S3 bucket
+* **CloudFrontCustomDns** Alias added to the Cloudfront as custom DNS
+* **AcmCertificateArn** ACM Certificate ARN added for the custom DNS
 
 ### WorkFlow Triggers
 
