@@ -88,9 +88,9 @@ echo "cd $source_dir/mediainfo"
 #    DistutilsOptionError: must supply either home or prefix/exec-prefix
 # Please follow the workaround suggested on this StackOverflow answer: https://stackoverflow.com/a/44728772
 cd ../mediainfo
-pip3 install boto3 -t ./pytests --quiet
-pip3 install pytest --quiet
-pip3 install pytest-cov --quiet
+uv pip install boto3 --quiet
+uv pip install pytest --quiet
+uv pip install pytest-cov --quiet
 
 rm -rf coverage
 pytest --cov=. --cov-report xml:coverage/coverage.xml

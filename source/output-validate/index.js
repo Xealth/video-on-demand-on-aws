@@ -21,7 +21,7 @@ const buildUrl = (originalValue) => originalValue.slice(5).split('/').splice(1).
 exports.handler = async (event) => {
   console.log(`REQUEST:: ${JSON.stringify(event, null, 2)}`);
 
-  const dynamo = DynamoDBDocument.from(new DynamoDBClient({ 
+  const dynamo = DynamoDBDocument.from(new DynamoDBClient({
     region: process.env.AWS_REGION,
     customUserAgent: process.env.SOLUTION_IDENTIFIER
   }));
@@ -46,6 +46,9 @@ exports.handler = async (event) => {
   data.workflowStatus = 'Complete';
   data.endTime = new Date().toISOString();
 
+  // use the given custom DNS configured for cloudfront
+  const outputUrlHost = data.cloudFrontCustomDns || data.cloudFront
+
   // Parse MediaConvert Output and generate CloudFront URLS.
   event.detail.outputGroupDetails.forEach(output => {
     console.log(`${output.type} found in outputs`);
@@ -53,13 +56,13 @@ exports.handler = async (event) => {
     switch (output.type) {
     case 'HLS_GROUP':
       data.hlsPlaylist = output.playlistFilePaths[0];
-      data.hlsUrl = `https://${data.cloudFront}/${buildUrl(data.hlsPlaylist)}`;
+      data.hlsUrl = `https://${outputUrlHost}/${buildUrl(data.hlsPlaylist)}`;
 
       break;
 
     case 'DASH_ISO_GROUP':
       data.dashPlaylist = output.playlistFilePaths[0];
-      data.dashUrl = `https://${data.cloudFront}/${buildUrl(data.dashPlaylist)}`;
+      data.dashUrl = `https://${outputUrlHost}/${buildUrl(data.dashPlaylist)}`;
 
       break;
 
@@ -67,13 +70,13 @@ exports.handler = async (event) => {
       let files = [];
       let urls = [];
       output.outputDetails.forEach((file) => {
-        
+
         if (file.outputFilePaths) {
           files.push(file.outputFilePaths[0]);
-          urls.push(`https://${data.cloudFront}/${buildUrl(file.outputFilePaths[0])}`);
+          urls.push(`https://${outputUrlHost}/${buildUrl(file.outputFilePaths[0])}`);
         }
       });
-      
+
       if (files.length >0  && files[0].split('.').pop() === 'mp4') {
       data.mp4Outputs = files;
       data.mp4Urls = urls;
@@ -83,16 +86,16 @@ exports.handler = async (event) => {
 
     case 'MS_SMOOTH_GROUP':
       data.mssPlaylist = output.playlistFilePaths[0];
-      data.mssUrl = `https://${data.cloudFront}/${buildUrl(data.mssPlaylist)}`;
+      data.mssUrl = `https://${outputUrlHost}/${buildUrl(data.mssPlaylist)}`;
 
       break;
 
     case 'CMAF_GROUP':
       data.cmafDashPlaylist = output.playlistFilePaths[0];
-      data.cmafDashUrl = `https://${data.cloudFront}/${buildUrl(data.cmafDashPlaylist)}`;
+      data.cmafDashUrl = `https://${outputUrlHost}/${buildUrl(data.cmafDashPlaylist)}`;
 
       data.cmafHlsPlaylist = output.playlistFilePaths[1];
-      data.cmafHlsUrl = `https://${data.cloudFront}/${buildUrl(data.cmafHlsPlaylist)}`;
+      data.cmafHlsUrl = `https://${outputUrlHost}/${buildUrl(data.cmafHlsPlaylist)}`;
 
       break;
 
@@ -110,9 +113,11 @@ exports.handler = async (event) => {
     data.thumbNails = [];
     data.thumbNailsUrls = [];
 
+    const subFolder = data.preserveFilePathInOutput ? data.destPathPreserved : data.guid;
+
     params = {
       Bucket: data.destBucket,
-      Prefix: `${data.guid}/thumbnails/`,
+      Prefix: `${subFolder}/thumbnails/`,
     };
 
     let thumbNails = await s3.listObjects(params);
@@ -120,11 +125,11 @@ exports.handler = async (event) => {
     if (thumbNails.Contents.length !=0) {
       let lastImg = thumbNails.Contents.pop();
       data.thumbNails.push(`s3://${data.destBucket}/${lastImg.Key}`);
-      data.thumbNailsUrls.push(`https://${data.cloudFront}/${lastImg.Key}`);
+      data.thumbNailsUrls.push(`https://${outputUrlHost}/${lastImg.Key}`);
     } else {
         throw new Error('MediaConvert Thumbnails not found in S3');
     }
-    
+
   }
 
   } catch (err) {

@@ -63,7 +63,7 @@ export class VideoOnDemand extends cdk.Stack {
     const frameCapture = new cdk.CfnParameter(this, 'FrameCapture', {
       type: 'String',
       description: 'If enabled, frame capture is added to the job submitted to MediaConvert',
-      default: 'No',
+      default: 'Yes',
       allowedValues: ['Yes', 'No']
     });
     const enableMediaPackage = new cdk.CfnParameter(this, 'EnableMediaPackage', {
@@ -90,6 +90,29 @@ export class VideoOnDemand extends cdk.Stack {
       default: 'PREFERRED',
       allowedValues: ['ENABLED', 'DISABLED', 'PREFERRED']
     });
+    const preserveFilePathInOutput = new cdk.CfnParameter(this, 'PreserveFilePathInOutput', {
+      type: 'String',
+      description: 'Preserves the input file\'s path in the output folder. For example, input file in s3://inputBucket/path1/path2/file1.mp4 will generate output s3://outputBucket/path1/path2/file1/mp4/file1.mp4 and s3://outputBucket/path1/path2/file1/mp4/hls',
+      default: 'Yes',
+      allowedValues: ['Yes', 'No']
+    });
+    const inputS3Bucket = new cdk.CfnParameter(this, 'InputS3Bucket', {
+      type: 'String',
+      description: 'Name of the video input S3 bucket'
+    });
+    const outputS3Bucket = new cdk.CfnParameter(this, 'OutputS3Bucket', {
+      type: 'String',
+      description: 'Name of the video output S3 bucket'
+    });
+    const cloudFrontCustomDns = new cdk.CfnParameter(this, 'CloudFrontCustomDns', {
+      type: 'String',
+      description: 'DNS assigned to the Cloudfront serving the transcoded content'
+    });
+    const acmCertificateArn = new cdk.CfnParameter(this, 'AcmCertificateArn', {
+      type: 'String',
+      description: 'AWS ACM certificate ARN for the customer DNS'
+    });
+
     /**
      * Template metadata
      */
@@ -103,7 +126,10 @@ export class VideoOnDemand extends cdk.Stack {
               workflowTrigger.logicalId,
               glacier.logicalId,
               enableSns.logicalId,
-              enableSqs.logicalId
+              enableSqs.logicalId,
+              preserveFilePathInOutput.logicalId,
+              inputS3Bucket.logicalId,
+              outputS3Bucket.logicalId
             ]
           },
           {
@@ -142,6 +168,21 @@ export class VideoOnDemand extends cdk.Stack {
           },
           EnableSqs: {
             default: 'Enable SQS Messaging'
+          },
+          PreserveFilePathInOutput: {
+            default: 'Preserve file path in output'
+          },
+          InputS3Bucket: {
+            default: 'Input S3 bucket name'
+          },
+          OutputS3Bucket: {
+            default: 'Output S3 bucket name'
+          },
+          CloudFrontCustomDns: {
+            default: 'CloudFront custom DNS (optional)'
+          },
+          AcmCertificateArn: {
+            default: 'ACM Certificate ARN for custom DNS (optional, required if CloudFront custom DNS is provided)'
           }
         }
       }
@@ -170,6 +211,14 @@ export class VideoOnDemand extends cdk.Stack {
     });
     const conditionEnableSqs = new cdk.CfnCondition(this, 'EnableSqsCondition', {
       expression: cdk.Fn.conditionEquals(enableSqs.valueAsString, 'Yes')
+    });
+    const conditionPreserveFilePathInOutput = new cdk.CfnCondition(this, 'PreserveFilePathInOutputCondition', {
+      expression: cdk.Fn.conditionEquals(preserveFilePathInOutput.valueAsString, 'Yes')
+    });
+    const conditionCustomDns = new cdk.CfnCondition(this, 'CustomDnsCondition', {
+      expression: cdk.Fn.conditionNot(
+        cdk.Fn.conditionEquals(cloudFrontCustomDns.valueAsString, '')
+      )
     });
 
 
@@ -228,6 +277,7 @@ export class VideoOnDemand extends cdk.Stack {
      * Source bucket for source video and jobsettings JSON files
      */
     const source = new s3.Bucket(this, 'Source', {
+      bucketName: inputS3Bucket.valueAsString,
       serverAccessLogsBucket: logsBucket,
       serverAccessLogsPrefix: 'source-bucket-logs/',
       blockPublicAccess: new s3.BlockPublicAccess({
@@ -237,6 +287,14 @@ export class VideoOnDemand extends cdk.Stack {
         restrictPublicBuckets: true
       }),
       encryption: s3.BucketEncryption.S3_MANAGED,
+      cors: [
+        {
+          allowedMethods: [s3.HttpMethods.GET],
+          allowedOrigins: ['*'],
+          allowedHeaders: ['*'],
+          maxAge: 3000
+        }
+      ],
       lifecycleRules: [
         {
           id: `${cdk.Aws.STACK_NAME}-soure-archive`,
@@ -295,6 +353,7 @@ export class VideoOnDemand extends cdk.Stack {
      * Destination bucket for workflow outputs
      */
     const destination = new s3.Bucket(this, 'Destination', {
+      bucketName: outputS3Bucket.valueAsString,
       serverAccessLogsBucket: logsBucket,
       serverAccessLogsPrefix: 'destination-bucket-logs/',
       blockPublicAccess: new s3.BlockPublicAccess({
@@ -363,6 +422,28 @@ export class VideoOnDemand extends cdk.Stack {
       insertHttpSecurityHeaders: false,
       logS3AccessLogs: false
     });
+
+    const cfnDistribution = distribution.cloudFrontWebDistribution.node.findChild('Resource') as cloudfront.CfnDistribution;
+    cfnDistribution.addPropertyOverride(
+      'DistributionConfig.Aliases',
+      cdk.Fn.conditionIf(
+        conditionCustomDns.logicalId,
+        [cloudFrontCustomDns.valueAsString],
+        cdk.Aws.NO_VALUE
+      )
+    );
+    cfnDistribution.addPropertyOverride(
+      'DistributionConfig.ViewerCertificate',
+      cdk.Fn.conditionIf(
+        conditionCustomDns.logicalId,
+        {
+          AcmCertificateArn: acmCertificateArn.valueAsString,
+          SslSupportMethod: 'sni-only',
+          MinimumProtocolVersion: 'TLSv1.2_2021',
+        },
+        cdk.Aws.NO_VALUE
+      )
+    );
 
     //cdk_nag
     NagSuppressions.addResourceSuppressions(
@@ -603,6 +684,10 @@ export class VideoOnDemand extends cdk.Stack {
             's3:GetObject',
             's3:PutObject'
           ]
+        }),
+        new iam.PolicyStatement({
+          resources: ['*'],
+          actions: ['iam:ListAttachedRolePolicies']
         }),
         new iam.PolicyStatement({
           resources: [`arn:${cdk.Aws.PARTITION}:execute-api:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:*`],
@@ -977,6 +1062,7 @@ export class VideoOnDemand extends cdk.Stack {
         InputRotate: 'DEGREE_0',
         EnableSns: `${cdk.Fn.conditionIf(conditionEnableSns.logicalId, 'true', 'false')}`,
         EnableSqs: `${cdk.Fn.conditionIf(conditionEnableSqs.logicalId, 'true', 'false')}`,
+        PreserveFilePathInOutput: `${cdk.Fn.conditionIf(conditionPreserveFilePathInOutput.logicalId, 'true', 'false')}`,
         AcceleratedTranscoding: acceleratedTranscoding.valueAsString
       },
       role: inputValidateRole,
