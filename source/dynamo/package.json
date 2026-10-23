@@ -2,7 +2,7 @@
   "name": "vod-dynamo",
   "version": "6.1.14",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.23.4"
   },
   "description": "dynamo helper for video on demand",
   "main": "index.js",
