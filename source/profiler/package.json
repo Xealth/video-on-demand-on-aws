@@ -2,7 +2,7 @@
   "name": "vod-profiler",
   "version": "1.0.0",
   "engines": {
-    "node": ">=22"
+    "node": ">=22.23.4"
   },
   "description": "process workflow for video on demand",
   "main": "index.js",
