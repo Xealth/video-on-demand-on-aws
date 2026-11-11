@@ -104,13 +104,15 @@ export class VideoOnDemand extends cdk.Stack {
       type: 'String',
       description: 'Name of the video output S3 bucket'
     });
-    const cloudFrontCustomDns = new cdk.CfnParameter(this, 'CloudFrontCustomDns', {
+    const customCloudFrontDns = new cdk.CfnParameter(this, 'CustomCloudFrontDns', {
       type: 'String',
-      description: 'DNS assigned to the Cloudfront serving the transcoded content'
+      description: 'DNS assigned to the Cloudfront serving the transcoded content',
+      default: ''
     });
     const acmCertificateArn = new cdk.CfnParameter(this, 'AcmCertificateArn', {
       type: 'String',
-      description: 'AWS ACM certificate ARN for the customer DNS'
+      description: 'AWS ACM certificate ARN for the customer DNS',
+      default: ''
     });
 
     /**
@@ -142,6 +144,13 @@ export class VideoOnDemand extends cdk.Stack {
           {
             Label: { default: 'AWS Elemental MediaPackage' },
             Parameters: [enableMediaPackage.logicalId]
+          },
+          {
+            Label: { default: 'Amazon CloudFront' },
+            Parameters: [
+              customCloudFrontDns.logicalId,
+              acmCertificateArn.logicalId
+            ]
           }
         ],
         ParameterLabels: {
@@ -178,7 +187,7 @@ export class VideoOnDemand extends cdk.Stack {
           OutputS3Bucket: {
             default: 'Output S3 bucket name'
           },
-          CloudFrontCustomDns: {
+          CustomCloudFrontDns: {
             default: 'CloudFront custom DNS (optional)'
           },
           AcmCertificateArn: {
@@ -217,7 +226,7 @@ export class VideoOnDemand extends cdk.Stack {
     });
     const conditionCustomDns = new cdk.CfnCondition(this, 'CustomDnsCondition', {
       expression: cdk.Fn.conditionNot(
-        cdk.Fn.conditionEquals(cloudFrontCustomDns.valueAsString, '')
+        cdk.Fn.conditionEquals(customCloudFrontDns.valueAsString, '')
       )
     });
 
@@ -428,7 +437,7 @@ export class VideoOnDemand extends cdk.Stack {
       'DistributionConfig.Aliases',
       cdk.Fn.conditionIf(
         conditionCustomDns.logicalId,
-        [cloudFrontCustomDns.valueAsString],
+        [customCloudFrontDns.valueAsString],
         cdk.Aws.NO_VALUE
       )
     );
@@ -593,7 +602,7 @@ export class VideoOnDemand extends cdk.Stack {
     );
 
     const customResourceLambda = new lambda.Function(this, 'CustomResource', {
-      runtime: lambda.Runtime.NODEJS_22_X,
+      runtime: lambda.Runtime.NODEJS_24_X,
       handler: 'index.handler',
       description: 'Used to deploy resources not supported by CloudFormation',
       environment: {
@@ -919,7 +928,7 @@ export class VideoOnDemand extends cdk.Stack {
     );
 
     const errorHandlerLambda = new lambda.Function(this, 'ErrorHandlerLambda', {
-      runtime: lambda.Runtime.NODEJS_22_X,
+      runtime: lambda.Runtime.NODEJS_24_X,
       handler: 'index.handler',
       functionName: `${cdk.Aws.STACK_NAME}-error-handler`,
       description: 'Captures and processes workflow errors',
@@ -1029,7 +1038,7 @@ export class VideoOnDemand extends cdk.Stack {
     );
 
     const inputValidateLambda = new lambda.Function(this, 'InputValidateLambda', {
-      runtime: lambda.Runtime.NODEJS_22_X,
+      runtime: lambda.Runtime.NODEJS_24_X,
       handler: 'index.handler',
       functionName: `${cdk.Aws.STACK_NAME}-input-validate`,
       description: 'Validates the input given to the workflow',
@@ -1058,6 +1067,7 @@ export class VideoOnDemand extends cdk.Stack {
           `${cdk.Aws.STACK_NAME}_Ott_720p_Avc_Aac_16x9_qvbr_no_preset`
         )}`,
         CloudFront: distribution.cloudFrontWebDistribution.domainName,
+        CustomCloudFrontDns: customCloudFrontDns.valueAsString,
         EnableMediaPackage: `${cdk.Fn.conditionIf(conditionEnableMediaPackage.logicalId, 'true', 'false')}`,
         InputRotate: 'DEGREE_0',
         EnableSns: `${cdk.Fn.conditionIf(conditionEnableSns.logicalId, 'true', 'false')}`,
@@ -1231,7 +1241,7 @@ export class VideoOnDemand extends cdk.Stack {
     );
 
     const dynamoUpdateLambda = new lambda.Function(this, 'DynamoUpdateLambda', {
-      runtime: lambda.Runtime.NODEJS_22_X,
+      runtime: lambda.Runtime.NODEJS_24_X,
       handler: 'index.handler',
       functionName: `${cdk.Aws.STACK_NAME}-dynamo`,
       description: 'Updates DynamoDB with event data',
@@ -1320,7 +1330,7 @@ export class VideoOnDemand extends cdk.Stack {
     );
 
     const profilerLambda = new lambda.Function(this, 'ProfilerLambda', {
-      runtime: lambda.Runtime.NODEJS_22_X,
+      runtime: lambda.Runtime.NODEJS_24_X,
       handler: 'index.handler',
       functionName: `${cdk.Aws.STACK_NAME}-profiler`,
       description: 'Sets an EncodeProfile based on mediainfo output',
@@ -1418,7 +1428,7 @@ export class VideoOnDemand extends cdk.Stack {
     );
 
     const encodeLambda = new lambda.Function(this, 'EncodeLambda', {
-      runtime: lambda.Runtime.NODEJS_22_X,
+      runtime: lambda.Runtime.NODEJS_24_X,
       handler: 'index.handler',
       functionName: `${cdk.Aws.STACK_NAME}-encode`,
       description: 'Creates a MediaConvert encode job',
@@ -1512,7 +1522,7 @@ export class VideoOnDemand extends cdk.Stack {
     );
 
     const outputValidateLambda = new lambda.Function(this, 'OutputValidateLambda', {
-      runtime: lambda.Runtime.NODEJS_22_X,
+      runtime: lambda.Runtime.NODEJS_24_X,
       handler: 'index.handler',
       functionName: `${cdk.Aws.STACK_NAME}-output-validate`,
       description: 'Parses MediaConvert job output',
@@ -1602,7 +1612,7 @@ export class VideoOnDemand extends cdk.Stack {
     );
 
     const archiveSourceLambda = new lambda.Function(this, 'ArchiveSourceLambda', {
-      runtime: lambda.Runtime.NODEJS_22_X,
+      runtime: lambda.Runtime.NODEJS_24_X,
       handler: 'index.handler',
       functionName: `${cdk.Aws.STACK_NAME}-archive-source`,
       description: 'Updates tags on source files to enable Glacier',
@@ -1695,7 +1705,7 @@ export class VideoOnDemand extends cdk.Stack {
     );
 
     const sqsSendMessageLambda = new lambda.Function(this, 'SqsSendMessageLambda', {
-      runtime: lambda.Runtime.NODEJS_22_X,
+      runtime: lambda.Runtime.NODEJS_24_X,
       handler: 'index.handler',
       functionName: `${cdk.Aws.STACK_NAME}-sqs-publish`,
       description: 'Publish the workflow results to an SQS queue',
@@ -1789,7 +1799,7 @@ export class VideoOnDemand extends cdk.Stack {
     );
 
     const snsNotificationLambda = new lambda.Function(this, 'SnsNotificationLambda', {
-      runtime: lambda.Runtime.NODEJS_22_X,
+      runtime: lambda.Runtime.NODEJS_24_X,
       handler: 'index.handler',
       functionName: `${cdk.Aws.STACK_NAME}-sns-notification`,
       description: 'Sends a notification when the encode job is completed',
@@ -1897,7 +1907,7 @@ export class VideoOnDemand extends cdk.Stack {
     );
 
     const mediaPackageAssetsLambda = new lambda.Function(this, 'MediaPackageAssetsLambda', {
-      runtime: lambda.Runtime.NODEJS_22_X,
+      runtime: lambda.Runtime.NODEJS_24_X,
       handler: 'index.handler',
       functionName: `${cdk.Aws.STACK_NAME}-media-package-assets`,
       description: 'Ingests an asset into MediaPackage-VOD',
@@ -1993,7 +2003,7 @@ export class VideoOnDemand extends cdk.Stack {
     );
 
     const stepFunctionsLambda = new lambda.Function(this, 'StepFunctionsLambda', {
-      runtime: lambda.Runtime.NODEJS_22_X,
+      runtime: lambda.Runtime.NODEJS_24_X,
       handler: 'index.handler',
       functionName: `${cdk.Aws.STACK_NAME}-step-functions`,
       description: 'Creates a unique identifer (GUID) and executes the Ingest StateMachine',
