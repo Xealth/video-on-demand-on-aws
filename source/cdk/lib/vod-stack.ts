@@ -297,7 +297,7 @@ export class VideoOnDemand extends cdk.Stack {
       ],
       lifecycleRules: [
         {
-          id: `${cdk.Aws.STACK_NAME}-soure-archive`,
+          id: `${cdk.Aws.STACK_NAME}-source-archive`,
           tagFilters: {
             [cdk.Aws.STACK_NAME]: 'GLACIER'
           },

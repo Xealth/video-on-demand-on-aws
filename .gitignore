@@ -35,3 +35,7 @@ codescan-unified-default.sh
 
 # Kiro IDE
 .kiro/
+
+# Stray package-lock files
+/package-lock.json
+/source/package-lock.json
