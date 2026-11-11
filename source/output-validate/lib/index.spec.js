@@ -121,5 +121,38 @@ describe('#OUTPUT VALIDATE::', () => {
         expect(response.thumbNails[0]).to.equal("s3://vod-destination/12345/thumbnails/dude3.000.jpg");
         expect(response.thumbNailsUrls[0]).to.equal("https://cloudfront/12345/thumbnails/dude3.000.jpg");
     });
+
+    it('should use the custom CloudFront DNS for URLs when set', async () => {
+        dynamoDBDocumentClientMock.on(GetCommand).resolves({
+            Item: { ...img_data.Item, cloudFrontCustomDns: 'videos.example.com' }
+        });
+        s3ClientMock.on(ListObjectsCommand).resolves({ Contents: [{ Key: '12345/thumbnails/dude3.000.jpg' }] });
+
+        const response = await lambda.handler(_events.hlsDash);
+        expect(response.hlsUrl).to.equal('https://videos.example.com/12345/hls/dude.m3u8');
+        expect(response.dashUrl).to.equal('https://videos.example.com/12345/dash/dude.mpd');
+        expect(response.thumbNailsUrls[0]).to.equal('https://videos.example.com/12345/thumbnails/dude3.000.jpg');
+    });
+
+    it('should fall back to the CloudFront domain when custom DNS is empty', async () => {
+        dynamoDBDocumentClientMock.on(GetCommand).resolves({
+            Item: { ...data.Item, cloudFrontCustomDns: '' }
+        });
+
+        const response = await lambda.handler(_events.hlsDash);
+        expect(response.hlsUrl).to.equal('https://cloudfront/12345/hls/dude.m3u8');
+    });
+
+    it('should list thumbnails under the preserved path when enabled', async () => {
+        s3ClientMock.reset();
+        dynamoDBDocumentClientMock.on(GetCommand).resolves({
+            Item: { ...img_data.Item, preserveFilePathInOutput: true, destPathPreserved: 'a/b/clip' }
+        });
+        s3ClientMock.on(ListObjectsCommand).resolves({ Contents: [{ Key: 'a/b/clip/thumbnails/clip.0000000.jpg' }] });
+
+        const response = await lambda.handler(_events.mp4);
+        expect(s3ClientMock.commandCalls(ListObjectsCommand)[0].args[0].input.Prefix).to.equal('a/b/clip/thumbnails/');
+        expect(response.thumbNailsUrls[0]).to.equal('https://cloudfront/a/b/clip/thumbnails/clip.0000000.jpg');
+    });
 });
 

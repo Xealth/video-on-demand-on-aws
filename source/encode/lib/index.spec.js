@@ -88,6 +88,27 @@ describe('#ENCODE::', () => {
         expect(response.encodingJob.Settings.OutputGroups[1].CustomName).to.equal('Frame Capture');
     });
 
+    it('should write outputs under the guid when preserveFilePathInOutput is false', async () => {
+        mediaConvertClientMock.on(GetJobTemplateCommand).resolves(tmpl);
+        mediaConvertClientMock.on(CreateJobCommand).resolves(data);
+
+        const response = await lambda.handler({ ..._withframe, preserveFilePathInOutput: false, destPathPreserved: 'a/b/video' });
+        const groups = response.encodingJob.Settings.OutputGroups;
+        expect(groups[0].OutputGroupSettings.HlsGroupSettings.Destination).to.equal('s3://dest/12345678/hls/');
+        expect(groups[1].OutputGroupSettings.FileGroupSettings.Destination).to.equal('s3://dest/12345678/thumbnails/');
+    });
+
+    it('should write outputs under the preserved input path when enabled', async () => {
+        mediaConvertClientMock.on(GetJobTemplateCommand).resolves(tmpl);
+        mediaConvertClientMock.on(CreateJobCommand).resolves(data);
+
+        const response = await lambda.handler({ ..._withframe, srcVideo: 'a/b/video.mp4', preserveFilePathInOutput: true, destPathPreserved: 'a/b/video' });
+        const groups = response.encodingJob.Settings.OutputGroups;
+        expect(groups[0].OutputGroupSettings.HlsGroupSettings.Destination).to.equal('s3://dest/a/b/video/hls/');
+        expect(groups[1].OutputGroupSettings.FileGroupSettings.Destination).to.equal('s3://dest/a/b/video/thumbnails/');
+        expect(groups[1].Outputs[0].VideoDescription.CodecSettings.FrameCaptureSettings.MaxCaptures).to.equal(1);
+    });
+
     it('should apply custom settings when template is custom', async () => {
         const event = {
             guid: '12345678',

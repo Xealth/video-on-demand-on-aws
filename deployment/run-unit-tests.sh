@@ -88,12 +88,19 @@ echo "cd $source_dir/mediainfo"
 #    DistutilsOptionError: must supply either home or prefix/exec-prefix
 # Please follow the workaround suggested on this StackOverflow answer: https://stackoverflow.com/a/44728772
 cd ../mediainfo
-uv pip install boto3 --quiet
-uv pip install pytest --quiet
-uv pip install pytest-cov --quiet
+if ! command -v uv >/dev/null 2>&1; then
+  echo "uv is required to run the mediainfo tests: https://docs.astral.sh/uv/" >&2
+  exit 1
+fi
+# Kept outside source/mediainfo so it is never packaged into the Lambda asset.
+# Python version matches the Lambda runtime (PYTHON_3_13 in vod-stack.ts).
+venv_dir="$(mktemp -d)"
+trap 'rm -rf "$venv_dir"' EXIT
+uv venv --quiet --python 3.13 "$venv_dir"
+uv pip install --quiet --python "$venv_dir/bin/python" boto3 pytest pytest-cov
 
 rm -rf coverage
-pytest --cov=. --cov-report xml:coverage/coverage.xml
+"$venv_dir/bin/pytest" --cov=. --cov-report xml:coverage/coverage.xml
 # fix source file path
 sed -i -- 's/filename\=\"/filename\=\"source\/mediainfo\//g' coverage/coverage.xml
 mkdir -p "$coverage_reports_top_path/pytest"

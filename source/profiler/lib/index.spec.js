@@ -66,6 +66,25 @@ describe('#PROFILER::', () => {
         expect(response.isCustomTemplate).to.be.true;
     });
 
+    const withFilename = (filename) => ({
+        Item: { ...data.Item, srcMediainfo: JSON.stringify({ video: [{ height: 720, width: 1280 }], filename }) }
+    });
+
+    it('should set destPathPreserved from a nested input key', async () => {
+        dynamoDBDocumentClientMock.on(GetCommand).resolves(withFilename('a/b/clip.mp4'));
+
+        const response = await lambda.handler(_event);
+        expect(response.destPathPreserved).to.equal('a/b/clip');
+    });
+
+    // Matches production v5: bucket-root inputs produce a leading '/'.
+    it('should set destPathPreserved with a leading slash for a bucket-root input', async () => {
+        dynamoDBDocumentClientMock.on(GetCommand).resolves(withFilename('clip.mp4'));
+
+        const response = await lambda.handler(_event);
+        expect(response.destPathPreserved).to.equal('/clip');
+    });
+
     it('should return "DB ERROR" when db get fails', async () => {
         dynamoDBDocumentClientMock.on(GetCommand).rejects('DB ERROR');
         lambdaClientMock.on(InvokeCommand).resolves();
