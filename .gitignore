@@ -35,3 +35,4 @@ codescan-unified-default.sh
 
 # Kiro IDE
 .kiro/
+.claude/settings.local.json
