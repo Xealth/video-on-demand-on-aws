@@ -20,8 +20,9 @@ Source code for [Video on Demand on AWS][vod-landing] guidance.
   - [QVBR Mode](#qvbr-mode)
   - [Accelerated Transcoding](#accelerated-transcoding)
   - [Source code](#source-code)
-    - [Node.js 22](#nodejs-22)
+    - [Node.js 24](#nodejs-24)
     - [Python 3.13](#python-313)
+  - [Xealth customizations](#xealth-customizations)
   - [Creating a custom build](#creating-a-custom-build)
     - [Prerequisites:](#prerequisites)
     - [1. Running unit tests for customization](#1-running-unit-tests-for-customization)
@@ -44,13 +45,13 @@ For details on deploying the guidance please see the details on the guidance hom
 > **Please ensure you test the new template before updating any production deployments.**
 
 ## Workflow Configuration
-The workflow configuration is set at deployment and is defined as environment variables for the
+The workflow configuration is set at deployment and is defined as environment variables for the 
 input-validate lambda function (which is the first step in the ingest process).
 
 #### Environment Variables:
-* **Archive Source:**	If enabled, the source video file will be tagged for archiving to glacier at
+* **Archive Source:**	If enabled, the source video file will be tagged for archiving to glacier at 
   the end of the workflow
-* **CloudFront:**	CloudFront domain name, used to generate the playback URLs for the MediaConvert
+* **CloudFront:**	CloudFront domain name, used to generate the playback URLs for the MediaConvert 
   outputs
 * **Destination:**	The name of the destination S3 bucket for all of the MediaConvert outputs
 * **FrameCapture:**	If enabled frame capture is added to the job submitted to MediaConvert
@@ -60,14 +61,16 @@ input-validate lambda function (which is the first step in the ingest process).
 * **MediaConvert_Template_720p:**	The name of the SD template in MediaConvert
 * **Source:**	The name of the source S3 bucket
 * **WorkflowName:**	Used to tag all of the MediaConvert encoding jobs
-* **acceleratedTranscoding** Enabled Accelerated Transocding in MediaConvert. options include ENABLE, DISABLE, PREFERRED. for more detials please see:
+* **acceleratedTranscoding** Enabled Accelerated Transcoding in MediaConvert. options include
+  ENABLE, DISABLED, PREFERRED. for more details please see:
+  [Accelerated Transcoding][accelerated-transcoding].
 * **enableSns** Send SNS notifications for the workflow results.
 * **enableSqs** Send the workflow results to an SQS queue
-* **PreserveFilePathInOutput** preserves the input file's path in the output folder
-* **InputS3Bucket** Name of the video input S3 bucket
-* **OutputS3Bucket** Name of the video output S3 bucket
-* **CloudFrontCustomDns** Alias added to the Cloudfront as custom DNS
-* **AcmCertificateArn** ACM Certificate ARN added for the custom DNS
+* **PreserveFilePathInOutput:** If enabled, outputs are written under the input file's path instead of
+  the workflow guid. For example, `s3://<input>/path1/path2/file1.mp4` produces
+  `s3://<output>/path1/path2/file1/hls/...`
+* **CustomCloudFrontDns:** Custom host name used in the playback URLs instead of the CloudFront domain.
+  Leave empty to use the CloudFront domain
 
 ### WorkFlow Triggers
 
@@ -172,8 +175,10 @@ and Single Pass HQ encoding:
 For more detail please see
 [QVBR and MediaConvert](https://docs.aws.amazon.com/mediaconvert/latest/ug/cbr-vbr-qvbr.html).
 
-## Accelerated Transcoding
-Version 5.1.0 introduces support for accelerated transcoding which is a pro tier  feature of AWS Elemental MediaConvert. This feature can be configured when launching the template with one of the following options:
+## Accelerated Transcoding 
+Version 5.1.0 introduces support for accelerated transcoding which is a pro tier feature of
+AWS Elemental MediaConvert.
+This feature can be configured when launching the template with one of the following options:
 
 * **ENABLED** All files upload will have acceleration enabled. Files that are not supported will not
   be processed and the workflow will fail
@@ -185,7 +190,7 @@ For more detail please see [Accelerated Transcoding][accelerated-transcoding].
 
 ## Source code
 
-### Node.js 22
+### Node.js 24
 * **archive-source:** Lambda function to tag the source video in s3
   to enable the Glacier lifecycle policy.
 * **custom-resource:** Lambda backed CloudFormation custom resource
@@ -206,8 +211,32 @@ For more detail please see [Accelerated Transcoding][accelerated-transcoding].
 
 > ./source/mediainfo/bin/mediainfo must be made executable before deploying to lambda.
 
+## Xealth customizations
+This fork adds the following to the upstream guidance:
+
+* **Named buckets:** the `InputS3Bucket` and `OutputS3Bucket` parameters set the source and destination
+  bucket names.
+* **Preserved paths:** `PreserveFilePathInOutput` (default `Yes`) mirrors the input key in the output
+  key. Inputs at the bucket root produce output keys that start with `/`, matching the v5 deployment.
+* **Custom CloudFront DNS:** `CustomCloudFrontDns` and `AcmCertificateArn` add an alias and certificate
+  to the distribution and use the alias in playback URLs. Leave both empty to use the default
+  `*.cloudfront.net` domain.
+* **MP4 output:** the QVBR job templates include an MP4 file group.
+* **Thumbnail only:** frame capture is on by default (`FrameCapture=Yes`) and is capped at a single
+  frame per video (`GENERATE_THUMBNAIL_ONLY` in `source/encode/index.js`).
+* **Input CORS:** the source bucket allows `GET` from any origin.
+
+To build and upload a release for a Xealth environment, set `XEALTH_STAGING_ACCOUNT_ID` or
+`XEALTH_PRODUCTION_ACCOUNT_ID` and run:
+```
+cd ./deployment
+./build-all.sh <staging|production> <version>    # e.g. 6.1.18-xealth.1
+```
+The script uploads to `aws-vod-xealth/<version>/` and refuses to write to a prefix that already
+contains objects, because running stacks read their template and Lambda code from those prefixes.
+
 ## Creating a custom build
-The guidance can be deployed through the CloudFormation template available on the guidance home page:
+The guidance can be deployed through the CloudFormation template available on the guidance home page: 
 [Video on Demand on AWS][vod-ig].
 To make changes to the guidance, download or clone this repo,
 update the source code and then run the deployment/build-s3-dist.sh script to deploy
@@ -215,17 +244,9 @@ the updated Lambda code to an Amazon S3 bucket in your account.
 
 ### Prerequisites:
 * [AWS Command Line Interface](https://aws.amazon.com/cli/)
-* Node.js 22.x or later
+* Node.js 24.x or later
 * Python 3.13 or later
-
-### 0. Install python virtual env for mediaInfo
-
-```
-cd source/mediainfo
-uv venv
-source .venv/bin/activate
-```
-
+* [uv](https://docs.astral.sh/uv/) (used by `run-unit-tests.sh` for the mediainfo tests)
 
 ### 1. Running unit tests for customization
 Run unit tests to make sure added customization passes the tests:
@@ -245,7 +266,9 @@ aws s3 mb s3://my-bucket-us-east-1
 ```
 
 ### 3. Build MediaInfo
-Build MediaInfo using the following commands on an [EC2 instance](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html) running an Amazon Linux AMI.
+Build MediaInfo using the following commands on an
+[EC2 instance](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EC2_GetStarted.html)
+running an Amazon Linux AMI. 
 
 ```console
 sudo yum update -y
@@ -264,12 +287,13 @@ cd MediaInfo/Project/GNU/CLI/
 ```
 Copy the mediainfo binary into the `source/mediainfo/bin` directory of your cloned respository.
 
-If you'd like to use a precompiled MediaInfo binary for Lambda built by the MediaArea team, you can download it [here](https://mediaarea.net/en/MediaInfo/Download/Lambda).
-For more information, check out the [MediaInfo site](https://mediaarea.net/en/MediaInfo).
+If you'd like to use a precompiled MediaInfo binary for Lambda built by the MediaArea team,
+you can download it [here](https://mediaarea.net/en/MediaInfo/Download/Lambda). 
+For more information, check out the [MediaInfo site][mediainfo-site].
 
 
 ### 4. Create the deployment packages
-First change directory into the deployment directory.
+First change directory into the deployment directory. 
 Run the following commands to build the distribution.
 ```
 chmod +x ./build-s3-dist.sh
@@ -279,7 +303,7 @@ chmod +x ./build-s3-dist.sh
 > **Notes**: The _build-s3-dist_ script expects the bucket name as one of its parameters,
 and this value should not include the region suffix.
 
-Run this command to ensure that you are an owner of the AWS S3 bucket you are uploading files to.
+Run this command to ensure that you are an owner of the AWS S3 bucket you are uploading files to. 
 ```
 aws s3api head-bucket --bucket my-bucket-us-east-1 --expected-bucket-owner <YOUR-AWS-ACCOUNT-ID>
 ```
@@ -287,7 +311,7 @@ aws s3api head-bucket --bucket my-bucket-us-east-1 --expected-bucket-owner <YOUR
 Deploy the distributable to the Amazon S3 bucket in your account:
 ```
 
-aws s3 sync ./regional-s3-assets/ s3://my-bucket-us-east-1/video-on-demand-on-aws/<version>/
+aws s3 sync ./regional-s3-assets/ s3://my-bucket-us-east-1/video-on-demand-on-aws/<version>/ 
 aws s3 sync ./global-s3-assets/ s3://my-bucket-us-east-1/video-on-demand-on-aws/<version>/
 ```
 
