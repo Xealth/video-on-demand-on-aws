@@ -12,7 +12,7 @@
  *********************************************************************************************************************/
 
 const { SFN: StepFunctions } = require("@aws-sdk/client-sfn");
-const { v4: uuidv4 } = require('uuid');
+const { randomUUID } = require('crypto');
 const error = require('./lib/error.js');
 
 exports.handler = async (event) => {
@@ -30,7 +30,7 @@ exports.handler = async (event) => {
         switch (true) {
             case event.hasOwnProperty('Records'):
                 // Ingest workflow triggered by s3 event::
-                event.guid = uuidv4();
+                event.guid = randomUUID();
 
                 // Identify file extention of s3 object::
                 let key = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, " "));
