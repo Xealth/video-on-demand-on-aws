@@ -64,9 +64,10 @@ for lambda_package in "${lambda_packages[@]}"
 do
   rm -rf "$source_dir/$lambda_package/coverage"
   mkdir "$source_dir/$lambda_package/coverage"
-  run_javascript_test "$source_dir/$lambda_package" $lambda_package
+  run_javascript_test "$source_dir/$lambda_package" "$lambda_package"
 
   # Check the result of the test and exit if a failure is identified
+  # shellcheck disable=SC2181 # must not wrap the call in `if`: that turns off set -e inside it
   if [ $? -eq 0 ]
   then
     echo "Test for $lambda_package passed"
@@ -104,5 +105,6 @@ rm -rf coverage
 # fix source file path
 sed -i -- 's/filename\=\"/filename\=\"source\/mediainfo\//g' coverage/coverage.xml
 mkdir -p "$coverage_reports_top_path/pytest"
+rm -rf "$coverage_reports_top_path/pytest/mediainfo"
 mv coverage "$coverage_reports_top_path/pytest/mediainfo"
 rm -rf pytests
