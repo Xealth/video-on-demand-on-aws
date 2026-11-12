@@ -1369,6 +1369,42 @@ exports[`VideoOnDemand Stack Test 1`] = `
                 ],
               },
             },
+            {
+              Action: s3:ListBucket,
+              Condition: {
+                StringEquals: {
+                  AWS:SourceArn: {
+                    Fn::Join: [
+                      ,
+                      [
+                        arn:,
+                        {
+                          Ref: AWS::Partition,
+                        },
+                        :cloudfront::,
+                        {
+                          Ref: AWS::AccountId,
+                        },
+                        :distribution/,
+                        {
+                          Ref: CloudFrontToS3CloudFrontDistribution241D9866,
+                        },
+                      ],
+                    ],
+                  },
+                },
+              },
+              Effect: Allow,
+              Principal: {
+                Service: cloudfront.amazonaws.com,
+              },
+              Resource: {
+                Fn::GetAtt: [
+                  Destination920A3C57,
+                  Arn,
+                ],
+              },
+            },
           ],
           Version: 2012-10-17,
         },

@@ -11,7 +11,7 @@
     "test": "jest --coverage"
   },
   "dependencies": {
-    "axios": "^1.12.0"
+    "axios": "^1.21.0"
   },
   "devDependencies": {
     "@aws-sdk/client-cloudfront": "^3.622.0",
@@ -31,5 +31,8 @@
     "name": "Amazon Web Services",
     "url": "https://aws.amazon.com/solutions"
   },
-  "license": "Apache-2.0"
+  "license": "Apache-2.0",
+  "overrides": {
+    "follow-redirects": "^1.16.2"
+  }
 }
