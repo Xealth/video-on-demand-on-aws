@@ -40,9 +40,12 @@ exports.handler = async (event) => {
         });
 
         let mediaInfo = JSON.parse(event.srcMediainfo);
-        // in case we want to preserve the original file path
-        const {dir: srcDir, name: srcName} = Path.parse(mediaInfo.filename)
-        event.destPathPreserved = `${srcDir}/${srcName}`
+        // Output folder used when PreserveFilePathInOutput is on: the input key without its extension.
+        const srcKey = mediaInfo.filename || event.srcVideo;
+        if (srcKey) {
+            const {dir: srcDir, name: srcName} = Path.posix.parse(srcKey);
+            event.destPathPreserved = Path.posix.join(srcDir, srcName);
+        }
 
         event.srcHeight = mediaInfo.video[0].height;
         event.srcWidth = mediaInfo.video[0].width;

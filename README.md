@@ -217,7 +217,8 @@ This fork adds the following to the upstream guidance:
 * **Named buckets:** the `InputS3Bucket` and `OutputS3Bucket` parameters set the source and destination
   bucket names.
 * **Preserved paths:** `PreserveFilePathInOutput` (default `Yes`) mirrors the input key in the output
-  key. Inputs at the bucket root produce output keys that start with `/`, matching the v5 deployment.
+  key (`a/b/clip.mp4` is written under `a/b/clip/`). The v5 deployment wrote bucket-root inputs under a
+  leading `/`; v6 does not. Neither environment had bucket-root inputs when this changed.
 * **Custom CloudFront DNS:** `CustomCloudFrontDns` and `AcmCertificateArn` add an alias and certificate
   to the distribution and use the alias in playback URLs. Leave both empty to use the default
   `*.cloudfront.net` domain.

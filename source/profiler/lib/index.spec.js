@@ -77,12 +77,20 @@ describe('#PROFILER::', () => {
         expect(response.destPathPreserved).to.equal('a/b/clip');
     });
 
-    // Matches production v5: bucket-root inputs produce a leading '/'.
-    it('should set destPathPreserved with a leading slash for a bucket-root input', async () => {
+    it('should set destPathPreserved without a leading slash for a bucket-root input', async () => {
         dynamoDBDocumentClientMock.on(GetCommand).resolves(withFilename('clip.mp4'));
 
         const response = await lambda.handler(_event);
-        expect(response.destPathPreserved).to.equal('/clip');
+        expect(response.destPathPreserved).to.equal('clip');
+    });
+
+    it('should fall back to srcVideo when mediainfo has no filename', async () => {
+        dynamoDBDocumentClientMock.on(GetCommand).resolves({
+            Item: { ...withFilename(undefined).Item, srcVideo: 'a/b/clip.mp4' }
+        });
+
+        const response = await lambda.handler(_event);
+        expect(response.destPathPreserved).to.equal('a/b/clip');
     });
 
     it('should return "DB ERROR" when db get fails', async () => {

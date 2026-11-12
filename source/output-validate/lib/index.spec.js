@@ -154,5 +154,16 @@ describe('#OUTPUT VALIDATE::', () => {
         expect(s3ClientMock.commandCalls(ListObjectsCommand)[0].args[0].input.Prefix).to.equal('a/b/clip/thumbnails/');
         expect(response.thumbNailsUrls[0]).to.equal('https://cloudfront/a/b/clip/thumbnails/clip.0000000.jpg');
     });
+
+    it('should list thumbnails under the guid when preserve is on but no preserved path is stored', async () => {
+        s3ClientMock.reset();
+        dynamoDBDocumentClientMock.on(GetCommand).resolves({
+            Item: { ...img_data.Item, preserveFilePathInOutput: true }
+        });
+        s3ClientMock.on(ListObjectsCommand).resolves({ Contents: [{ Key: '1234/thumbnails/clip.0000000.jpg' }] });
+
+        await lambda.handler(_events.mp4);
+        expect(s3ClientMock.commandCalls(ListObjectsCommand)[0].args[0].input.Prefix).to.equal('1234/thumbnails/');
+    });
 });
 

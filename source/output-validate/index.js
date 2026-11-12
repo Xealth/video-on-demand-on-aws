@@ -113,7 +113,7 @@ exports.handler = async (event) => {
     data.thumbNails = [];
     data.thumbNailsUrls = [];
 
-    const subFolder = data.preserveFilePathInOutput ? data.destPathPreserved : data.guid;
+    const subFolder = (data.preserveFilePathInOutput && data.destPathPreserved) || data.guid;
 
     params = {
       Bucket: data.destBucket,
