@@ -596,6 +596,7 @@
                         },
                         "AudioDescriptions": [
                             {
+                                "AudioSourceName": "Audio Selector 1",
                                 "CodecSettings": {
                                     "Codec": "AAC",
                                     "AacSettings": {
@@ -610,9 +611,7 @@
                 ],
                 "OutputGroupSettings": {
                     "Type": "FILE_GROUP_SETTINGS",
-                    "FileGroupSettings": {
-                        "Destination": "s3://bucket/out"
-                    }
+                    "FileGroupSettings": {}
                 }
             }
         ],

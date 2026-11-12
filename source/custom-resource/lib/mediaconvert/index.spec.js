@@ -20,7 +20,8 @@ const {
     DescribeEndpointsCommand, 
     DeletePresetCommand, 
     DeleteJobTemplateCommand,
-    ListJobTemplatesCommand
+    ListJobTemplatesCommand,
+    UpdateJobTemplateCommand
 } = require('@aws-sdk/client-mediaconvert');
 
 const lambda = require('./index.js');
@@ -129,6 +130,17 @@ describe('#MEDIACONVERT::', () => {
             await lambda.updateTemplates(_config);
             expect(wasCreateTemplateInvoked).to.be.false;
             toBeCreated.forEach(item => expect(item.endsWith('_no_preset')).to.be.false);
+        });
+
+        it('should update the existing no-preset templates in place', async () => {
+            mediaConvertClientMock.on(ListJobTemplatesCommand).resolves(update_data_no_preset);
+            mediaConvertClientMock.on(UpdateJobTemplateCommand).resolves(data);
+
+            await lambda.updateTemplates(_config);
+            const updated = mediaConvertClientMock.commandCalls(UpdateJobTemplateCommand).map(c => c.args[0].input);
+            expect(updated.map(t => t.Name)).to.deep.equal(['test_Ott_720p_Avc_Aac_16x9_qvbr_no_preset']);
+            expect(updated[0].Tags).to.be.undefined;
+            expect(mediaConvertClientMock.commandCalls(CreateJobTemplateCommand)).to.have.lengthOf(0);
         });
 
         it('should fail when listJobTemplates throws an exception', async () => {

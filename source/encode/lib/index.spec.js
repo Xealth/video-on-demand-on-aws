@@ -109,6 +109,25 @@ describe('#ENCODE::', () => {
         expect(groups[1].Outputs[0].VideoDescription.CodecSettings.FrameCaptureSettings.MaxCaptures).to.equal(1);
     });
 
+    it('should fall back to the guid when preserve is on but no preserved path is set', async () => {
+        mediaConvertClientMock.on(GetJobTemplateCommand).resolves(tmpl);
+        mediaConvertClientMock.on(CreateJobCommand).resolves(data);
+
+        const response = await lambda.handler({ ..._withframe, preserveFilePathInOutput: true });
+        expect(response.encodingJob.Settings.OutputGroups[0].OutputGroupSettings.HlsGroupSettings.Destination).to.equal('s3://dest/12345678/hls/');
+    });
+
+    it('should write MP4 outputs from the shipped 720p template under the workflow path', async () => {
+        const shipped = require('../../custom-resource/lib/mediaconvert/templates/720p_avc_aac_16x9_qvbr_no_preset.json');
+        mediaConvertClientMock.on(GetJobTemplateCommand).resolves({ JobTemplate: shipped });
+        mediaConvertClientMock.on(CreateJobCommand).resolves(data);
+
+        const response = await lambda.handler({ ..._event, preserveFilePathInOutput: true, destPathPreserved: 'a/b/video' });
+        const mp4 = response.encodingJob.Settings.OutputGroups.find(g => g.OutputGroupSettings.Type === 'FILE_GROUP_SETTINGS');
+        expect(mp4.OutputGroupSettings.FileGroupSettings.Destination).to.equal('s3://dest/a/b/video/mp4/');
+        expect(mp4.Outputs[0].AudioDescriptions[0].AudioSourceName).to.equal('Audio Selector 1');
+    });
+
     it('should apply custom settings when template is custom', async () => {
         const event = {
             guid: '12345678',

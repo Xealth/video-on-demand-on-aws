@@ -1004,6 +1004,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
                 mediaconvert:CreateJobTemplate,
                 mediaconvert:DeletePreset,
                 mediaconvert:DeleteJobTemplate,
+                mediaconvert:UpdateJobTemplate,
                 mediaconvert:DescribeEndpoints,
                 mediaconvert:ListJobTemplates,
                 mediaconvert:TagResource,
@@ -2865,7 +2866,12 @@ exports[`VideoOnDemand Stack Test 1`] = `
             {
               Action: iam:ListAttachedRolePolicies,
               Effect: Allow,
-              Resource: *,
+              Resource: {
+                Fn::GetAtt: [
+                  MediaConvertRole031A64A9,
+                  Arn,
+                ],
+              },
             },
             {
               Action: execute-api:Invoke,
@@ -2973,6 +2979,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
         StackName: {
           Ref: AWS::StackName,
         },
+        TemplateFingerprint: d9533b50dec3e3558af7790bb2910ba8f177c2b8bcb5cf9736f8bdade5ec2e32,
       },
       Type: AWS::CloudFormation::CustomResource,
       UpdateReplacePolicy: Delete,

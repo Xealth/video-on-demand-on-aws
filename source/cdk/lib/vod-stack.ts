@@ -515,6 +515,7 @@ export class VideoOnDemand extends cdk.Stack {
             'mediaconvert:CreateJobTemplate',
             'mediaconvert:DeletePreset',
             'mediaconvert:DeleteJobTemplate',
+            'mediaconvert:UpdateJobTemplate',
             'mediaconvert:DescribeEndpoints',
             'mediaconvert:ListJobTemplates',
             'mediaconvert:TagResource',
@@ -655,7 +656,9 @@ export class VideoOnDemand extends cdk.Stack {
         StackName: cdk.Aws.STACK_NAME,
         EndPoint: mediaConvertEndpoint.getAtt('EndpointUrl'),
         EnableMediaPackage: cdk.Fn.conditionIf(conditionEnableMediaPackage.logicalId, 'true', 'false'),
-        EnableNewTemplates: true
+        EnableNewTemplates: true,
+        // Changes whenever a template file changes, so a stack update re-applies the templates.
+        TemplateFingerprint: cdk.FileSystem.fingerprint('../custom-resource/lib/mediaconvert/templates')
       }
     });
 
@@ -694,8 +697,9 @@ export class VideoOnDemand extends cdk.Stack {
             's3:PutObject'
           ]
         }),
+        // MediaConvert lists the policies on its own role; without this it logs AccessDenied in CloudTrail.
         new iam.PolicyStatement({
-          resources: ['*'],
+          resources: [mediaConvertRole.roleArn],
           actions: ['iam:ListAttachedRolePolicies']
         }),
         new iam.PolicyStatement({
