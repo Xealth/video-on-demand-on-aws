@@ -2,16 +2,13 @@
   "name": "vod-step-functions",
   "version": "6.1.14",
   "engines": {
-    "node": ">=22"
+    "node": ">=24"
   },
   "description": "ingest workflow for video on demand",
   "main": "index.js",
   "scripts": {
     "pretest": "npm i --quiet",
     "test": "jest --coverage"
-  },
-  "dependencies": {
-    "uuid": "^9.0.0"
   },
   "devDependencies": {
     "@aws-sdk/client-lambda": "^3.622.0",

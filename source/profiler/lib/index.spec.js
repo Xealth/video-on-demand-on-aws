@@ -34,7 +34,7 @@ describe('#PROFILER::', () => {
     const data = {
         Item: {
             guid: '12345678',
-            srcMediainfo: '{ "video": [{ "height": 720, "width": 1280 }] }',
+            srcMediainfo: JSON.stringify({video: [{ "height": 720, "width": 1280 }], filename: 'video.mp4'}),
             jobTemplate_2160p: 'tmpl1',
             jobTemplate_1080p: 'tmpl2',
             jobTemplate_720p: 'tmpl3',
@@ -64,6 +64,33 @@ describe('#PROFILER::', () => {
         expect(response.frameCaptureHeight).to.equal(720);
         expect(response.frameCaptureWidth).to.equal(1280);
         expect(response.isCustomTemplate).to.be.true;
+    });
+
+    const withFilename = (filename) => ({
+        Item: { ...data.Item, srcMediainfo: JSON.stringify({ video: [{ height: 720, width: 1280 }], filename }) }
+    });
+
+    it('should set destPathPreserved from a nested input key', async () => {
+        dynamoDBDocumentClientMock.on(GetCommand).resolves(withFilename('a/b/clip.mp4'));
+
+        const response = await lambda.handler(_event);
+        expect(response.destPathPreserved).to.equal('a/b/clip');
+    });
+
+    it('should set destPathPreserved without a leading slash for a bucket-root input', async () => {
+        dynamoDBDocumentClientMock.on(GetCommand).resolves(withFilename('clip.mp4'));
+
+        const response = await lambda.handler(_event);
+        expect(response.destPathPreserved).to.equal('clip');
+    });
+
+    it('should fall back to srcVideo when mediainfo has no filename', async () => {
+        dynamoDBDocumentClientMock.on(GetCommand).resolves({
+            Item: { ...withFilename(undefined).Item, srcVideo: 'a/b/clip.mp4' }
+        });
+
+        const response = await lambda.handler(_event);
+        expect(response.destPathPreserved).to.equal('a/b/clip');
     });
 
     it('should return "DB ERROR" when db get fails', async () => {

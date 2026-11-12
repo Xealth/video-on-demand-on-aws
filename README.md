@@ -20,8 +20,9 @@ Source code for [Video on Demand on AWS][vod-landing] guidance.
   - [QVBR Mode](#qvbr-mode)
   - [Accelerated Transcoding](#accelerated-transcoding)
   - [Source code](#source-code)
-    - [Node.js 22](#nodejs-22)
+    - [Node.js 24](#nodejs-24)
     - [Python 3.13](#python-313)
+  - [Xealth customizations](#xealth-customizations)
   - [Creating a custom build](#creating-a-custom-build)
     - [Prerequisites:](#prerequisites)
     - [1. Running unit tests for customization](#1-running-unit-tests-for-customization)
@@ -65,6 +66,11 @@ input-validate lambda function (which is the first step in the ingest process).
   [Accelerated Transcoding][accelerated-transcoding].
 * **enableSns** Send SNS notifications for the workflow results.
 * **enableSqs** Send the workflow results to an SQS queue
+* **PreserveFilePathInOutput:** If enabled, outputs are written under the input file's path instead of
+  the workflow guid. For example, `s3://<input>/path1/path2/file1.mp4` produces
+  `s3://<output>/path1/path2/file1/hls/...`
+* **CustomCloudFrontDns:** Custom host name used in the playback URLs instead of the CloudFront domain.
+  Leave empty to use the CloudFront domain
 
 ### WorkFlow Triggers
 
@@ -184,7 +190,7 @@ For more detail please see [Accelerated Transcoding][accelerated-transcoding].
 
 ## Source code
 
-### Node.js 22
+### Node.js 24
 * **archive-source:** Lambda function to tag the source video in s3
   to enable the Glacier lifecycle policy.
 * **custom-resource:** Lambda backed CloudFormation custom resource
@@ -205,6 +211,31 @@ For more detail please see [Accelerated Transcoding][accelerated-transcoding].
 
 > ./source/mediainfo/bin/mediainfo must be made executable before deploying to lambda.
 
+## Xealth customizations
+This fork adds the following to the upstream guidance:
+
+* **Named buckets:** the `InputS3Bucket` and `OutputS3Bucket` parameters set the source and destination
+  bucket names.
+* **Preserved paths:** `PreserveFilePathInOutput` (default `Yes`) mirrors the input key in the output
+  key (`a/b/clip.mp4` is written under `a/b/clip/`). The v5 deployment wrote bucket-root inputs under a
+  leading `/`; v6 does not. Neither environment had bucket-root inputs when this changed.
+* **Custom CloudFront DNS:** `CustomCloudFrontDns` and `AcmCertificateArn` add an alias and certificate
+  to the distribution and use the alias in playback URLs. Leave both empty to use the default
+  `*.cloudfront.net` domain.
+* **MP4 output:** the QVBR job templates include an MP4 file group.
+* **Thumbnail only:** frame capture is on by default (`FrameCapture=Yes`) and is capped at a single
+  frame per video (`GENERATE_THUMBNAIL_ONLY` in `source/encode/index.js`).
+* **Input CORS:** the source bucket allows `GET` from any origin.
+
+To build and upload a release for a Xealth environment, set `XEALTH_STAGING_ACCOUNT_ID` or
+`XEALTH_PRODUCTION_ACCOUNT_ID` and run:
+```
+cd ./deployment
+./build-all.sh <staging|production> <version>    # e.g. 6.1.18-xealth.1
+```
+The script uploads to `aws-vod-xealth/<version>/` and refuses to write to a prefix that already
+contains objects, because running stacks read their template and Lambda code from those prefixes.
+
 ## Creating a custom build
 The guidance can be deployed through the CloudFormation template available on the guidance home page: 
 [Video on Demand on AWS][vod-ig].
@@ -214,8 +245,9 @@ the updated Lambda code to an Amazon S3 bucket in your account.
 
 ### Prerequisites:
 * [AWS Command Line Interface](https://aws.amazon.com/cli/)
-* Node.js 22.x or later
+* Node.js 24.x or later
 * Python 3.13 or later
+* [uv](https://docs.astral.sh/uv/) (used by `run-unit-tests.sh` for the mediainfo tests)
 
 ### 1. Running unit tests for customization
 Run unit tests to make sure added customization passes the tests:

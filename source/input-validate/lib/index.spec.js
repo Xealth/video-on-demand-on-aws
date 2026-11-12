@@ -29,6 +29,9 @@ describe('#INPUT VALIDATE::', () => {
     process.env.AcceleratedTranscoding = 'DISABLED'
     process.env.EnableSns = 'true';
     process.env.EnableSqs = 'true';
+    process.env.PreserveFilePathInOutput = 'true';
+    process.env.CloudFront = 'd111111abcdef8.cloudfront.net';
+    process.env.CustomCloudFrontDns = 'videos.example.com';
 
     const _video = {
         workflowTrigger: 'Video',
@@ -62,6 +65,13 @@ describe('#INPUT VALIDATE::', () => {
     it('should succeed when processing valid source video', async () => {
         const response = await lambda.handler(_video);
         expect(response.srcVideo).to.equal('video.mp4');
+    });
+
+    it('should pass the CloudFront domain, custom DNS and preserve-path flag to the workflow', async () => {
+        const response = await lambda.handler(_video);
+        expect(response.cloudFront).to.equal('d111111abcdef8.cloudfront.net');
+        expect(response.cloudFrontCustomDns).to.equal('videos.example.com');
+        expect(response.preserveFilePathInOutput).to.be.true;
     });
 
     it('should succeed when processing valid metadata', async () => {

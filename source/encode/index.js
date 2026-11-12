@@ -15,6 +15,10 @@ const { MediaConvert } = require("@aws-sdk/client-mediaconvert");
 const error = require('./lib/error.js');
 const _ = require('lodash');
 
+// Xealth only uses frame capture for a single thumbnail per video, so capture just the first frame.
+const MAX_FRAME_CAPTURE = 1;
+
+
 const getMp4Group = (outputPath) => ({
     Name: 'File Group',
     OutputGroupSettings: {
@@ -104,7 +108,7 @@ const getFrameGroup = (event, outputPath) => ({
             AntiAlias: 'ENABLED',
             CodecSettings: {
                 FrameCaptureSettings: {
-                    MaxCaptures: 10000000,
+                    MaxCaptures: MAX_FRAME_CAPTURE,
                     Quality: 80,
                     FramerateDenominator: 5,
                     FramerateNumerator: 1
@@ -130,7 +134,8 @@ exports.handler = async (event) => {
 
     try {
         const inputPath = `s3://${event.srcBucket}/${event.srcVideo}`;
-        const outputPath = `s3://${event.destBucket}/${event.guid}`;
+        const subFolder = (event.preserveFilePathInOutput && event.destPathPreserved) || event.guid;
+        const outputPath = `s3://${event.destBucket}/${subFolder}`
 
         // Baseline for the job parameters
         let job = {

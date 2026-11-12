@@ -180,6 +180,18 @@ const _createTemplates = async (instance, templates, stackName) => {
     }
 };
 
+const _updateTemplates = async (instance, templates, stackName, existingNames) => {
+    for (let tmpl of templates) {
+        let params = JSON.parse(fs.readFileSync(tmpl.file, 'utf8'));
+        params.Name = stackName + params.Name;
+
+        if (existingNames.includes(params.Name)) {
+            await instance.updateJobTemplate(params);
+            console.log(`template updated:: ${params.Name}`);
+        }
+    }
+};
+
 const Create = async (config) => {
     const mediaconvert = new MediaConvert({
         endpoint: config.EndPoint,
@@ -215,6 +227,10 @@ const Update = async (config) => {
         console.log("Creating templates with no presets")
         await _createTemplates(mediaconvert, qvbrTemplatesNoPreset, config.StackName);
         await _createTemplates(mediaconvert, mediaPackageTemplatesNoPreset, config.StackName);
+    } else {
+        const existingNames = data.JobTemplates.map(template => template.Name);
+        await _updateTemplates(mediaconvert, qvbrTemplatesNoPreset, config.StackName, existingNames);
+        await _updateTemplates(mediaconvert, mediaPackageTemplatesNoPreset, config.StackName, existingNames);
     }
 
     return 'success';

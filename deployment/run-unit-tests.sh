@@ -64,9 +64,10 @@ for lambda_package in "${lambda_packages[@]}"
 do
   rm -rf "$source_dir/$lambda_package/coverage"
   mkdir "$source_dir/$lambda_package/coverage"
-  run_javascript_test "$source_dir/$lambda_package" $lambda_package
+  run_javascript_test "$source_dir/$lambda_package" "$lambda_package"
 
   # Check the result of the test and exit if a failure is identified
+  # shellcheck disable=SC2181 # must not wrap the call in `if`: that turns off set -e inside it
   if [ $? -eq 0 ]
   then
     echo "Test for $lambda_package passed"
@@ -88,14 +89,22 @@ echo "cd $source_dir/mediainfo"
 #    DistutilsOptionError: must supply either home or prefix/exec-prefix
 # Please follow the workaround suggested on this StackOverflow answer: https://stackoverflow.com/a/44728772
 cd ../mediainfo
-pip3 install boto3 -t ./pytests --quiet
-pip3 install pytest --quiet
-pip3 install pytest-cov --quiet
+if ! command -v uv >/dev/null 2>&1; then
+  echo "uv is required to run the mediainfo tests: https://docs.astral.sh/uv/" >&2
+  exit 1
+fi
+# Kept outside source/mediainfo so it is never packaged into the Lambda asset.
+# Python version matches the Lambda runtime (PYTHON_3_13 in vod-stack.ts).
+venv_dir="$(mktemp -d)"
+trap 'rm -rf "$venv_dir"' EXIT
+uv venv --quiet --python 3.13 "$venv_dir"
+uv pip install --quiet --python "$venv_dir/bin/python" boto3 pytest pytest-cov
 
 rm -rf coverage
-pytest --cov=. --cov-report xml:coverage/coverage.xml
+"$venv_dir/bin/pytest" --cov=. --cov-report xml:coverage/coverage.xml
 # fix source file path
 sed -i -- 's/filename\=\"/filename\=\"source\/mediainfo\//g' coverage/coverage.xml
 mkdir -p "$coverage_reports_top_path/pytest"
+rm -rf "$coverage_reports_top_path/pytest/mediainfo"
 mv coverage "$coverage_reports_top_path/pytest/mediainfo"
 rm -rf pytests
