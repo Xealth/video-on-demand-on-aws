@@ -21,7 +21,7 @@ Source code for [Video on Demand on AWS][vod-landing] guidance.
   - [Accelerated Transcoding](#accelerated-transcoding)
   - [Source code](#source-code)
     - [Node.js 22](#nodejs-22)
-    - [Python 3.13](#python-313)
+    - [Python 3.15](#python-315)
   - [Creating a custom build](#creating-a-custom-build)
     - [Prerequisites:](#prerequisites)
     - [1. Running unit tests for customization](#1-running-unit-tests-for-customization)
@@ -199,7 +199,7 @@ For more detail please see [Accelerated Transcoding][accelerated-transcoding].
 * **profiler:** Lambda function used to send publish and/or error notifications.
 * **step-functions:** Lambda function to trigger AWS Step Functions.
 
-### Python 3.13
+### Python 3.15
 * **mediainfo:** Lambda function to run [mediainfo][mediainfo-site]
   on an S3 signed url.
 
@@ -215,7 +215,7 @@ the updated Lambda code to an Amazon S3 bucket in your account.
 ### Prerequisites:
 * [AWS Command Line Interface](https://aws.amazon.com/cli/)
 * Node.js 22.x or later
-* Python 3.13 or later
+* Python 3.15 or later
 
 ### 1. Running unit tests for customization
 Run unit tests to make sure added customization passes the tests:

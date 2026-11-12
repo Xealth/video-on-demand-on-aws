@@ -2925,7 +2925,7 @@ exports[`VideoOnDemand Stack Test 1`] = `
             Arn,
           ],
         },
-        Runtime: python3.13,
+        Runtime: python3.15,
         Tags: [
           {
             Key: SolutionId,

@@ -1058,7 +1058,7 @@ export class VideoOnDemand extends cdk.Stack {
     );
 
     const mediaInfoLambda = new lambda.Function(this, 'MediaInfoLambda', {
-      runtime: lambda.Runtime.PYTHON_3_13,
+      runtime: lambda.Runtime.PYTHON_3_15,
       handler: 'lambda_function.lambda_handler',
       functionName: `${cdk.Aws.STACK_NAME}-mediainfo`,
       description: 'Runs mediainfo on a pre-signed S3 URL',
