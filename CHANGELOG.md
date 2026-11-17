@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.3.1-xealth.2] - 2026-11-17
+### Changed
+- `DestBucketPolicy` gets `DeletionPolicy: Retain` and a `Sid`, so 5.3.1-xealth.3 can remove it from the stack
+  without CloudFormation deleting the output bucket's policy (INFOSEC-14444).
+- `deployment/publish-template.sh` publishes the template alone, with the Lambda code version kept at 5.3.1.
+
 ## [5.3.1] - 2021-12-16
 ### Fixed
 - Fixed spelling errors in CloudFormation template.

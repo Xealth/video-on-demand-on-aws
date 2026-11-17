@@ -356,12 +356,18 @@ Resources:
       SourceArn: !GetAtt EncodeCompleteRule.Arn
 
   DestBucketPolicy:
+    # Retain: the next version removes this policy (and the buckets) from the stack, and Terraform's s3-bucket
+    # module takes the policy over. Without Retain, CloudFormation would delete the policy on that update.
+    # The Sid is a real property change, so CloudFormation records the new DeletionPolicy with this update.
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
     Type: AWS::S3::BucketPolicy
     Properties:
       Bucket: !Ref Destination
       PolicyDocument:
         Statement:
-          - Effect: Allow
+          - Sid: CloudFrontOriginAccessIdentityRead
+            Effect: Allow
             Action:
               - s3:GetObject
             Resource: !Sub "arn:${AWS::Partition}:s3:::${Destination}/*"
