@@ -74,11 +74,15 @@ Parameters:
       - No
 
   InputS3Bucket:
-    Description: Name of the video input S3 bucket
+    Description: Name of the existing video input S3 bucket (xealth-terraform cms_media_serving creates it)
     Type: String
 
   OutputS3Bucket:
-    Description: Name of the video output S3 bucket
+    Description: Name of the existing video output S3 bucket (xealth-terraform cms_media_serving creates it)
+    Type: String
+
+  CloudFrontLogsBucket:
+    Description: Name of the existing S3 bucket the CloudFront distribution writes standard logs to
     Type: String
 
   CustomCloudFrontDns:
@@ -189,7 +193,7 @@ Resources:
                   - s3:PutObject
                   - s3:PutObjectAcl
                 Resource:
-                  - !GetAtt Source.Arn
+                  - !Sub "arn:${AWS::Partition}:s3:::${InputS3Bucket}"
               - Effect: Allow
                 Action:
                   - mediaconvert:CreatePreset
@@ -283,8 +287,8 @@ Resources:
                   - s3:GetObject
                   - s3:PutObject
                 Resource:
-                  - !Sub "${Source.Arn}/*"
-                  - !Sub "${Destination.Arn}/*"
+                  - !Sub "arn:${AWS::Partition}:s3:::${InputS3Bucket}/*"
+                  - !Sub "arn:${AWS::Partition}:s3:::${OutputS3Bucket}/*"
               - Effect: Allow
                 Action:
                   - execute-api:Invoke
@@ -323,8 +327,8 @@ Resources:
                   - s3:GetBucketLocation
                   - s3:GetBucketRequestPayment
                 Resource:
-                  - !Sub "${Destination.Arn}"
-                  - !Sub "${Destination.Arn}/*"
+                  - !Sub "arn:${AWS::Partition}:s3:::${OutputS3Bucket}"
+                  - !Sub "arn:${AWS::Partition}:s3:::${OutputS3Bucket}/*"
     Metadata:
       cfn_nag:
         rules_to_suppress:
@@ -354,25 +358,6 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: events.amazonaws.com
       SourceArn: !GetAtt EncodeCompleteRule.Arn
-
-  DestBucketPolicy:
-    # Retain: the next version removes this policy (and the buckets) from the stack, and Terraform's s3-bucket
-    # module takes the policy over. Without Retain, CloudFormation would delete the policy on that update.
-    # The Sid is a real property change, so CloudFormation records the new DeletionPolicy with this update.
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket: !Ref Destination
-      PolicyDocument:
-        Statement:
-          - Sid: CloudFrontOriginAccessIdentityRead
-            Effect: Allow
-            Action:
-              - s3:GetObject
-            Resource: !Sub "arn:${AWS::Partition}:s3:::${Destination}/*"
-            Principal:
-              CanonicalUser: !GetAtt DestinationOriginAccessIdentity.S3CanonicalUserId
 
   EncodeCompleteRule:
     Type: AWS::Events::Rule
@@ -446,102 +431,6 @@ Resources:
           - id: W74
             reason: " The DynamoDB table is configured to use the default encryption"
 
-  Source:
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Ref InputS3Bucket
-      LoggingConfiguration:
-        DestinationBucketName: !Ref Logs
-        LogFilePrefix: s3-access/
-      CorsConfiguration:
-        CorsRules:
-          - AllowedMethods: [GET]
-            AllowedOrigins: ['*']
-            AllowedHeaders: ['*']
-            MaxAge: 3000
-      LifecycleConfiguration:
-        Rules:
-          - Id: !Sub "${AWS::StackName}-source-archive"
-            TagFilters:
-              - Key: !Ref AWS::StackName
-                Value: GLACIER
-            Status: Enabled
-            Transitions:
-            - TransitionInDays: 1
-              StorageClass: GLACIER
-          - Id: !Sub "${AWS::StackName}-source-deep-archive"
-            TagFilters:
-              - Key: !Ref AWS::StackName
-                Value: DEEP_ARCHIVE
-            Status: Enabled
-            Transitions:
-            - TransitionInDays: 1
-              StorageClass: DEEP_ARCHIVE
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-    Metadata:
-      cfn_nag:
-        rules_to_suppress:
-          - id: W51
-            reason: "Bucket does not need a bucket policy"
-
-  Destination:
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Ref OutputS3Bucket
-      LoggingConfiguration:
-        DestinationBucketName: !Ref Logs
-        LogFilePrefix: s3-access/
-      CorsConfiguration:
-        CorsRules:
-          - AllowedMethods: [GET]
-            AllowedOrigins: ['*']
-            AllowedHeaders: ['*']
-            MaxAge: 3000
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
-
-  Logs:
-    DeletionPolicy: Retain
-    UpdateReplacePolicy: Retain
-    Type: AWS::S3::Bucket
-    Properties:
-      AccessControl: LogDeliveryWrite
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-    Metadata:
-      cfn_nag:
-        rules_to_suppress:
-          - id: W35
-            reason: "Used to store access logs for other buckets"
-          - id: W51
-            reason: "Bucket does not need a bucket policy"
-
   SnsTopic:
     Type: AWS::SNS::Topic
     Properties:
@@ -574,7 +463,7 @@ Resources:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
     Properties:
       CloudFrontOriginAccessIdentityConfig:
-        Comment: !Sub "access-identity-${Destination}"
+        Comment: !Sub "access-identity-${OutputS3Bucket}"
 
   CloudFront:
     Type: AWS::CloudFront::Distribution
@@ -584,14 +473,14 @@ Resources:
         Aliases:
           - !Ref CustomCloudFrontDns
         Origins:
-          - DomainName: !Sub "${Destination}.s3.${AWS::Region}.amazonaws.com"
+          - DomainName: !Sub "${OutputS3Bucket}.s3.${AWS::Region}.amazonaws.com"
             Id: vodS3Origin
             S3OriginConfig:
               OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${DestinationOriginAccessIdentity}"
         Enabled: true
         Logging:
           IncludeCookies: false
-          Bucket: !GetAtt Logs.DomainName
+          Bucket: !Sub "${CloudFrontLogsBucket}.s3.amazonaws.com"
           Prefix: cloudfront-logs/
         DefaultCacheBehavior:
           AllowedMethods:
@@ -628,7 +517,7 @@ Resources:
     Type: Custom::S3
     Properties:
       ServiceToken: !GetAtt CustomResource.Arn
-      Source: !Ref Source
+      Source: !Ref InputS3Bucket
       IngestArn: !GetAtt StepFunctions.Arn
       Resource: S3Notification
       WorkflowTrigger: !Ref WorkflowTrigger
@@ -773,7 +662,7 @@ Resources:
                 Action:
                   - s3:GetObject
                 Resource:
-                  - !Sub "${Source.Arn}/*"
+                  - !Sub "arn:${AWS::Partition}:s3:::${InputS3Bucket}/*"
               - Effect: Allow
                 Action:
                   - lambda:InvokeFunction
@@ -810,8 +699,8 @@ Resources:
           ErrorHandler: !GetAtt ErrorHandler.Arn
 
           WorkflowName: !Ref AWS::StackName
-          Source: !Ref Source
-          Destination: !Ref Destination
+          Source: !Ref InputS3Bucket
+          Destination: !Ref OutputS3Bucket
           FrameCapture: !Ref FrameCapture
           ArchiveSource: !Ref Glacier
           MediaConvert_Template_2160p:
@@ -866,7 +755,7 @@ Resources:
                 Action:
                   - s3:GetObject
                 Resource:
-                  - !Sub "${Source.Arn}/*"
+                  - !Sub "arn:${AWS::Partition}:s3:::${InputS3Bucket}/*"
               - Effect: Allow
                 Action:
                   - lambda:InvokeFunction
@@ -1142,7 +1031,7 @@ Resources:
                 Action:
                   - s3:ListBucket
                 Resource:
-                  - !GetAtt Destination.Arn
+                  - !Sub "arn:${AWS::Partition}:s3:::${OutputS3Bucket}"
               - Effect: Allow
                 Action:
                   - logs:CreateLogGroup
@@ -1203,7 +1092,7 @@ Resources:
                 Action:
                   - s3:PutObjectTagging
                 Resource:
-                  - !Sub "${Source.Arn}/*"
+                  - !Sub "arn:${AWS::Partition}:s3:::${InputS3Bucket}/*"
               - Effect: Allow
                 Action:
                   - lambda:InvokeFunction
@@ -1832,15 +1721,19 @@ Outputs:
 
   Source:
     Description: Source Bucket
-    Value: !Ref Source
+    Value: !Ref InputS3Bucket
     Export:
       Name: !Join [":", [!Ref "AWS::StackName", Source]]
 
   Destination:
     Description: Destination Bucket
-    Value: !Ref Destination
+    Value: !Ref OutputS3Bucket
     Export:
       Name: !Join [":", [!Ref "AWS::StackName", Destination]]
+
+  DestinationOriginAccessIdentity:
+    Description: ID of the CloudFront origin access identity that reads the output bucket. xealth-terraform grants it s3:GetObject in that bucket's policy.
+    Value: !Ref DestinationOriginAccessIdentity
 
   CloudFront:
     Description: CloudFront Domain Name

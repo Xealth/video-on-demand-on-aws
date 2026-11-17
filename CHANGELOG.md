@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [5.3.1-xealth.3] - 2026-11-17
+### Changed
+- The stack no longer creates the `Source`, `Destination` and `Logs` buckets or `DestBucketPolicy`; all four had
+  `DeletionPolicy: Retain`, so they stay in place. xealth-terraform's `cms_media_serving` creates the input and
+  output buckets with the s3-bucket module and passes their names in `InputS3Bucket` and `OutputS3Bucket`.
+- New parameter `CloudFrontLogsBucket`: the bucket the CloudFront distribution logs to (was the stack's `Logs`).
+- New output `DestinationOriginAccessIdentity`, which Terraform grants read on the output bucket (INFOSEC-14444).
+
 ## [5.3.1-xealth.2] - 2026-11-17
 ### Changed
 - `DestBucketPolicy` gets `DeletionPolicy: Retain` and a `Sid`, so 5.3.1-xealth.3 can remove it from the stack
